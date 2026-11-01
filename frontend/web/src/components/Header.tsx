@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
   AppBar,
   Toolbar,
@@ -17,7 +17,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  tenantName = 'St. Joseph Academy',
+  tenantName = 'Fidel Hub Academy',
   userName = 'Principal Bekele',
 }) => {
   return (

@@ -1,6 +1,6 @@
-# DATABASE DESIGN SPECIFICATION (DDS)
+﻿# DATABASE DESIGN SPECIFICATION (DDS)
 
-## School Management SaaS Platform
+## Fidel Hub — School Management SaaS Platform
 
 | Document Information | Details |
 | :--- | :--- |
@@ -15,7 +15,7 @@
 
 ### 1.1 Purpose
 
-This document defines the database architecture and logical database design for the School Management SaaS Platform.
+This document defines the database architecture and logical database design for the Fidel Hub School Management SaaS Platform.
 
 It provides the database implementation reference for:
 

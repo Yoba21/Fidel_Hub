@@ -1,6 +1,6 @@
-[01/11/2026 12:33 PM] Yo: TECHNICAL ARCHITECTURE DOCUMENT (TAD)
+﻿# TECHNICAL ARCHITECTURE DOCUMENT (TAD)
 
-School Management SaaS Platform
+## Fidel Hub — School Management SaaS Platform
 
 Document: TAD-003
 Version: 1.0
@@ -13,7 +13,7 @@ Date: 1 November 2026
 
 1.1 Purpose
 
-This document defines the technical architecture of the School Management SaaS Platform.
+This document defines the technical architecture of the Fidel Hub School Management SaaS Platform.
 
 It establishes how the system will be structured, how its modules will communicate, how tenant and branch data will be protected, and how the application will be developed, deployed, tested, and maintained.
 
@@ -80,7 +80,7 @@ The system consists of three primary application components:
 
 Both client applications communicate with the same backend API. The backend controls business rules, authorization, tenant context, database access, and background processing.
 
-                   SCHOOL MANAGEMENT SAAS
+                    FIDEL HUB PLATFORM   
                             |
              +--------------+--------------+
              |                             |

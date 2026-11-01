@@ -1,9 +1,9 @@
-[01/11/2026 12:33 PM] Yo: PRODUCT REQUIREMENTS DOCUMENT (PRD)
+﻿# PRODUCT REQUIREMENTS DOCUMENT (PRD)
 
-School Management SaaS Platform
+## Fidel Hub — School Management SaaS Platform
 
 Document Information| Details
-Document| Product Requirements Document
+Document| Fidel Hub Product Requirements Document
 Version| 1.0
 Status| Initial product baseline
 Date| November 1, 2026
@@ -17,7 +17,7 @@ Product type| Multi-tenant SaaS
 
 1.1 Product Vision
 
-Build a modern, secure, scalable School Management SaaS platform that enables Ethiopian educational institutions to manage their administrative, academic, student, staff and financial operations through one integrated system.
+Build Fidel Hub, a modern, secure, scalable School Management SaaS platform that enables Ethiopian educational institutions to manage their administrative, academic, student, staff and financial operations through one integrated system.
 
 The platform will replace fragmented manual processes with centralized, structured and accessible digital workflows.
 

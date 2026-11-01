@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
   Box,
   Grid,
@@ -64,7 +64,7 @@ export const Dashboard: React.FC = () => {
               Welcome to Fidel Hub
             </Typography>
             <Chip
-              label="Tenant: St. Joseph Academy"
+              label="Tenant: Fidel Hub Academy"
               size="small"
               sx={{
                 bgcolor: '#E0A526',

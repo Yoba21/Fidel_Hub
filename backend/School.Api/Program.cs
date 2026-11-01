@@ -1,4 +1,4 @@
-using School.Shared.Tenancy;
+﻿using School.Shared.Tenancy;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,8 +33,8 @@ app.Use(async (context, next) =>
     }
     else
     {
-        // Default seed demo tenant (St. Joseph Academy)
-        tenantContext.SetTenant(Guid.Parse("11111111-1111-1111-1111-111111111111"), "stjoseph");
+        // Default seed demo tenant (Fidel Hub Academy)
+        tenantContext.SetTenant(Guid.Parse("11111111-1111-1111-1111-111111111111"), "fidelhub");
     }
 
     await next();
