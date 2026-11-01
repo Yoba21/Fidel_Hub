@@ -1,4 +1,4 @@
-# OFFLINE CBT & LOCAL EXAM VENUE SYNCHRONIZATION SPECIFICATION
+﻿# OFFLINE CBT & LOCAL EXAM VENUE SYNCHRONIZATION SPECIFICATION
 
 ## Fidel Hub — Zero-Downtime Offline Examination Engine
 
@@ -183,3 +183,58 @@ CREATE TABLE local_student_answers (
 | **Networking** | Gigabit Ethernet (1000BASE-T) | Gigabit Ethernet + Dedicated Wi-Fi 6 APs |
 | **Power Backup** | Laptop Battery or 650VA UPS | 1500VA Online UPS |
 | **Operating System** | Ubuntu 22.04 LTS / Windows 11 Pro | Ubuntu 24.04 LTS Server |
+
+---
+
+## 6. Implementation with Drizzle ORM, Zod & Sentry
+
+### 6.1 Drizzle ORM & better-sqlite3 in Local Venue Server
+The Local Exam Venue Server runtime uses Node.js / TypeScript with **Drizzle ORM** and `better-sqlite3` in WAL mode. This guarantees type-safe database queries with sub-millisecond execution times:
+
+`	ypescript
+import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
+
+const sqlite = new Database('local_exam.db');
+sqlite.pragma('journal_mode = WAL');
+sqlite.pragma('synchronous = NORMAL');
+
+export const db = drizzle(sqlite);
+
+export const localStudentAnswers = sqliteTable('local_student_answers', {
+  sessionId: text('session_id').notNull(),
+  questionId: text('question_id').notNull(),
+  selectedOptionId: text('selected_option_id'),
+  textResponse: text('text_response'),
+  elapsedSeconds: integer('elapsed_seconds').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+`
+
+### 6.2 Inbound Payload Validation with Zod
+Before the Local Venue Server stores or syncs answers, payloads are validated via a strict **Zod** contract:
+
+`	ypescript
+import { z } from 'zod';
+
+export const SyncBatchPayloadSchema = z.object({
+  batchToken: z.string().uuid(),
+  venueServerId: z.string().min(3),
+  examPaperId: z.string().uuid(),
+  sessions: z.array(z.object({
+    sessionId: z.string().uuid(),
+    studentId: z.string().uuid(),
+    isFinal: z.boolean(),
+    elapsedSeconds: z.number().int().nonnegative(),
+    answers: z.array(z.object({
+      questionId: z.string().uuid(),
+      selectedOptionId: z.string().uuid().nullable().optional(),
+      textResponse: z.string().nullable().optional(),
+    }))
+  }))
+});
+`
+
+### 6.3 Sentry Real-Time Crash Monitoring
+During live assessments, student workstations report unexpected errors to Sentry tagged with `venue_server_id` and `exam_paper_id`. If an unhandled client error occurs, Sentry alerts proctors immediately while local SQLite WAL ensures no student keystrokes are lost.

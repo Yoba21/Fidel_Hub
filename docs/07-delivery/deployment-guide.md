@@ -168,3 +168,33 @@ volumes:
   2. Redis Cache cluster (`PING`).
   3. Better Auth JWKS endpoint.
   If any dependency fails, returns `503 Service Unavailable`, preventing the ingress load balancer from sending traffic to that instance.
+
+
+---
+
+## 5. Cloud Platform Integrations (Vercel, Resend & Sentry)
+
+### 5.1 Vercel Edge Deployment for Web Portal
+The web administration portal is deployed to **Vercel** with continuous deployment from GitHub:
+1. Connect the GitHub repository `Fidel_Hub` to Vercel.
+2. Root Directory: `frontend/web`.
+3. Framework Preset: `Vite`.
+4. Build Command: `npm run build`.
+5. Output Directory: `dist`.
+6. Environment Variables:
+   - `VITE_API_URL`: `https://api.fidelhub.com/api/v1`
+   - `VITE_AUTH_URL`: `https://auth.fidelhub.com`
+   - `VITE_SENTRY_DSN`: `https://...@sentry.io/...`
+
+### 5.2 Resend Transactional Email Provisioning
+1. Register production domain `fidelhub.com` in the Resend dashboard.
+2. Configure DNS SPF, DKIM, and DMARC records to ensure 100% email inbox delivery.
+3. Provision API key and inject into ASP.NET Core environment:
+   - `Resend__ApiKey`: `re_xxxxxxxxxxxxxxxxxxxx`
+
+### 5.3 Sentry Full-Stack Telemetry Provisioning
+1. Create a `fidel-hub` project in Sentry.
+2. Inject the Sentry DSN across tiers:
+   - Backend API: `Sentry__Dsn` in `appsettings.Production.json`
+   - Web Portal: `VITE_SENTRY_DSN`
+   - Expo Mobile: `SENTRY_DSN` in `app.config.ts`

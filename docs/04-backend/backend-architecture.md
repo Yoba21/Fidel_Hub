@@ -1,4 +1,4 @@
-# BACKEND ARCHITECTURE SPECIFICATION
+﻿# BACKEND ARCHITECTURE SPECIFICATION
 
 ## Fidel Hub — ASP.NET Core Modular Monolith Architecture
 
@@ -253,3 +253,77 @@ services.AddResiliencePipeline("sms-gateway-pipeline", builder =>
   - Better Auth public JWKS keys are cached with a 24-hour TTL, auto-refreshed upon key rotation.
 * **Distributed Locks (`RedLock`)**:
   - Used during fee structure generation and exam paper publishing to prevent concurrent duplicate execution across multiple API replicas.
+
+---
+
+## 7. Transactional Email Dispatch with Resend
+
+Transactional emails (fee payment receipts, invoice statements, and term report cards) are processed via **Resend** using strongly-typed React Email components:
+
+`csharp
+namespace FidelHub.Infrastructure.Notifications;
+
+public class ResendEmailService : IEmailService
+{
+    private readonly HttpClient _httpClient;
+    private readonly string _apiKey;
+
+    public ResendEmailService(HttpClient httpClient, IConfiguration configuration)
+    {
+        _httpClient = httpClient;
+        _apiKey = configuration["Resend:ApiKey"]!;
+    }
+
+    public async Task SendInvoiceReceiptAsync(string toEmail, string studentName, string receiptNumber, decimal amount, byte[] pdfReceipt, CancellationToken ct)
+    {
+        var payload = new
+        {
+            from = "Fidel Hub <billing@fidelhub.com>",
+            to = new[] { toEmail },
+            subject = $"Payment Receipt: {receiptNumber} for {studentName}",
+            html = $"<p>Dear Parent,</p><p>We have confirmed payment of <strong>{amount} ETB</strong>. Receipt #{receiptNumber} is attached.</p>",
+            attachments = new[]
+            {
+                new { filename = $"Receipt-{receiptNumber}.pdf", content = Convert.ToBase64String(pdfReceipt) }
+            }
+        };
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+        request.Content = JsonContent.Create(payload);
+
+        var response = await _httpClient.SendAsync(request, ct);
+        response.EnsureSuccessStatusCode();
+    }
+}
+`
+
+---
+
+## 8. Full-Stack Telemetry & Error Tracing with Sentry
+
+Both the ASP.NET Core API host and background worker services integrate **Sentry** for real-time observability:
+
+`csharp
+// Program.cs configuration
+builder.WebHost.UseSentry(options =>
+{
+    options.Dsn = builder.Configuration["Sentry:Dsn"];
+    options.TracesSampleRate = 0.2; // 20% performance trace sampling
+    options.ConfigureScope(scope =>
+    {
+        scope.SetTag("service", "fidel-hub-api");
+    });
+});
+`
+
+* **Tenant-Scoped Tracing**: Interceptors enrich Sentry scopes with 	enant_id and ranch_id on every HTTP request, allowing instant debugging of tenant-specific issues without leaking PII.
+* **Database Query Performance**: Npgsql integration automatically logs slow queries (> 200ms) directly to Sentry Performance dashboards.
+
+---
+
+## 9. AI-Assisted Assessment Workflows with Vercel AI SDK
+
+The backend hosts integration endpoints for the **Vercel AI SDK** to power educational assistance:
+1. **Question Generation**: Parses national curriculum PDF chapters and outputs structured JSON conforming to Question aggregate models.
+2. **Theory Rubric Evaluation**: Analyzes student essay submissions against teacher-defined marking criteria and keyword rubrics, proposing a score and explanatory feedback.

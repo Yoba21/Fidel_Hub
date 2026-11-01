@@ -5,11 +5,16 @@
 | Document Information | Details |
 | :--- | :--- |
 | **Document ID** | WEB-001 |
-| **Version** | 1.0 |
+| **Version** | 1.1 (Updated with Approved Ecosystem Libraries) |
 | **Status** | Approved Baseline |
-| **Tech Stack** | React 19 + Vite 6 + TypeScript 5 + Material UI (MUI v6) |
-| **Design Language**| Enterprise Density, Forest Green Brand Tokens, Command Palette (`Ctrl+K`) |
+| **Core Tech Stack** | React 19 + Vite 6 + TypeScript 5 |
+| **UI Components** | shadcn/ui & Radix UI Primitives + Material UI (MUI v6) Theme Tokens |
+| **Iconography** | Tabler Icons (`@tabler/icons-react`) |
+| **Form Validation** | Zod + React Hook Form |
+| **Utilities & Dates** | Day.js + Lodash-es |
+| **AI Workflows** | Vercel AI SDK (`ai`) |
 | **State Architecture**| TanStack Query v5 (Server State) + Zustand (Client UI State) |
+| **Hosting & Edge CDN**| Vercel Global Edge Network |
 
 ---
 
@@ -22,13 +27,13 @@ graph TD
     subgraph Browser Client
         App["App Root (React 19 + StrictMode)"]
         Router["React Router v7 (Data Loaders & Route Guards)"]
-        Theme["MUI Theme Provider (Brand Tokens & Ethiopic Typography)"]
+        Theme["Theme Provider (Brand Tokens & Ethiopic Typography)"]
         
         subgraph Global Shell
             Sidebar["Collapsible Navigation Drawer"]
-            CommandBar["Global Command Palette (Ctrl+K)"]
+            CommandBar["Global Command Palette (Ctrl+K cmdk)"]
             BranchSwitcher["Active Campus Branch Selector"]
-            SlideOver["Global Slide-Over Inspector Drawer"]
+            SlideOver["Global Slide-Over Inspector (shadcn Sheet)"]
         end
         
         subgraph State Layer
@@ -38,8 +43,9 @@ graph TD
     end
 
     subgraph Backend Gateways
-        BetterAuth["Better Auth Service (Node.js)"]
+        BetterAuth["Better Auth Service (Node.js / Drizzle)"]
         CoreApi["Fidel Hub REST API (ASP.NET Core)"]
+        VercelAi["Vercel AI SDK Gateway"]
     end
 
     App --> Router
@@ -49,6 +55,7 @@ graph TD
     SlideOver --> TanStack
     TanStack -->|"Bearer JWT"| CoreApi
     Zustand -->|"Login / Token Refresh"| BetterAuth
+    CommandBar -.->|"Natural Language Queries"| VercelAi
 ```
 
 ---
@@ -72,17 +79,18 @@ The interface implements Fidel Hub's verified brand palette:
 
 ---
 
-## 3. Signature Enterprise Features
+## 3. Signature Enterprise Features & Approved Ecosystem Libraries
 
-### 3.1 Global Command Palette (`Ctrl+K` / `Cmd+K`)
+### 3.1 Global Command Palette (`Ctrl+K` with `cmdk` & Vercel AI SDK)
 * Instant global search accessible anywhere via keyboard shortcut `Ctrl+K`.
-* Allows typing student admission numbers (`FHA-2026-0042`), teacher names, or direct navigation commands (`"Take Attendance"`, `"Record Payment"`, `"Generate Report Cards"`).
+* **Direct Navigation**: Fast switching by admission number (`FHA-2026-0042`), student names, or quick shortcuts (`"Take Attendance"`, `"Record Payment"`, `"Generate Report Cards"`).
+* **AI-Assisted Natural Language Queries**: Powered by the Vercel AI SDK, allowing administrators to query: *"Show all unexcused absences for Grade 9 today"* or *"Which students owe more than 2,000 ETB?"*.
 
-### 3.2 Slide-Over Detail Sheets (Drawers)
-* Detail records (Student 360° view, Clinic visit intake, Book loan checkout) open in non-intrusive 480px slide-over drawers from the right viewport edge.
+### 3.2 Slide-Over Detail Sheets (`shadcn/ui Sheet`)
+* Detail records (Student 360° profile, Clinic visit intake, Book loan checkout) open in non-intrusive 480px slide-over sheets from the right viewport edge.
 * Users inspect student biodata, attendance history, and fee balances without losing context or navigating away from their active data table.
 
-### 3.3 High-Density Spreadsheet Data Tables
+### 3.3 High-Density Virtualized Data Tables
 * Virtualized data grids supporting 2,000+ student marksheet entries without frame drops.
 * Sticky headers, inline keyboard navigation (`Tab` and `Enter` to cycle mark inputs), and 1-click Excel/CSV export.
 
@@ -90,7 +98,13 @@ The interface implements Fidel Hub's verified brand palette:
 * Interactive UI component allowing users to toggle between:
   - **Ethiopian Calendar (EC)**: 13 months (Meskerem to Pagume) with native year calculations.
   - **Gregorian Calendar (GC)**: Standard international date selection.
-* Bidirectional deterministic conversion ensures the backend always receives clean Gregorian UTC dates.
+* `Day.js` ensures lightweight date parsing and relative timestamps (*"absent 15 min ago"*, *"due in 3 days"*).
+
+### 3.5 Client Form Validation with Zod & React Hook Form
+* Every user mutation form (Student Admissions, Fee Payment, Exam Question Authoring) is guarded by a strictly typed **Zod schema** with automatic TypeScript type inference.
+
+### 3.6 Iconography with Tabler Icons (`@tabler/icons-react`)
+* Unified vector icon set across all 15 functional modules: `IconSchool`, `IconCalendar`, `IconReceipt`, `IconDeviceLaptop`, `IconBook`, `IconFlask`, `IconFirstAidKit`, `IconShieldCheck`.
 
 ---
 
@@ -138,3 +152,12 @@ export const RequirePermission = ({ permission, children }: { permission: string
   </RequirePermission>
 } />
 ```
+
+---
+
+## 6. Cloud Deployment on Vercel Edge CDN
+
+The web application is compiled via Vite and deployed directly to **Vercel**:
+* **Global Edge CDN**: Static HTML, CSS, JavaScript, and font assets are cached at edge points of presence across Africa and Europe for sub-second initial load times.
+* **Preview Branches**: Every pull request generates an automated preview deployment for QA and stakeholder review.
+* **Headers & Security**: Automated HTTP security headers (`Content-Security-Policy`, `X-Frame-Options: DENY`, `Strict-Transport-Security`).

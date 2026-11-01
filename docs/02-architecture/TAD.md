@@ -54,21 +54,46 @@ The following stack is the approved technical baseline.
 Layer| Technology
 Backend| ASP.NET Core 10 Web API
 Language| C#
-ORM| Entity Framework Core 10
+ORM| Entity Framework Core 10 (Write Path) + Dapper (Read Path)
 Database provider| Npgsql for EF Core
-Database| PostgreSQL
+Database| PostgreSQL 16+
 Web frontend| React + TypeScript + Vite
 Mobile application| React Native + Expo
-Offline storage| SQLite
+Offline storage| SQLite (WAL Mode)
 API style| REST
-Authentication| Secure token-based authentication
-Authorization| Role-based and permission-based access
-Database isolation| PostgreSQL Row-Level Security
-Background processing| .NET Hosted Services
-API documentation| OpenAPI
-Architecture| Modular monolith
+Authentication| Better Auth (Node.js/PostgreSQL) with Organizations & JWT
+Authorization| Role-based and permission-based access (ASP.NET Core Policies)
+Database isolation| PostgreSQL Row-Level Security (RLS)
+Background processing| .NET Hosted Services / Quartz.NET
+API documentation| OpenAPI / Swagger
+Architecture| Modular monolith (Vertical Slices + CQRS)
+UI Component Primitives| shadcn/ui & Radix UI accessible patterns
+Vector Iconography| Tabler Icons (@tabler/icons-react)
+Client Validation| Zod runtime schema validation
+AI & Natural Language| Vercel AI SDK (Question authoring, rubric grading, Ctrl+K)
+Date & Time Utilities| Day.js
+Utility Functions| Lodash-es (tree-shakeable utilities)
+Local EVS / Auth ORM| Drizzle ORM (Better Auth & Local Exam Venue Server SQLite)
+Cloud Hosting & Edge CDN| Vercel (Web Portal Edge CDN) + Managed PostgreSQL
+Transactional Email| Resend (React Email Templates)
+Application Telemetry| Sentry (Full-Stack Crash & Error Tracing)
 
 Package versions must remain compatible with the selected .NET and EF Core major versions. The Npgsql provider version must be verified against the selected EF Core release before implementation.
+
+2.1 Approved Auxiliary Ecosystem Technologies
+
+The following 10 ecosystem technologies extend and complement the core architecture without conflicting with the ASP.NET Core, EF Core, or PostgreSQL foundations:
+
+1. **shadcn/ui**: Accessible, copy-paste headless UI component primitives (command palette cmdk, slide-over sheets, high-density data filters, accessible dialogs) styled with Fidel Hub brand design tokens (#1B5E3F and #E0A526).
+2. **Tabler Icons (@tabler/icons-react)**: Unified, lightweight vector iconography across all 15 functional modules in web and mobile applications.
+3. **Vercel AI SDK**: Powers AI-assisted workflows: generating question banks from Ethiopian curriculum PDFs, assisting teachers with rubric-based subjective essay scoring, and parsing natural language queries in the global Ctrl+K command bar.
+4. **Zod**: Type-safe runtime schema validation for frontend forms, API response assertions, and Local Venue Server inbound sync packet verification.
+5. **Day.js**: Ultralight (2KB) date parsing, relative time formatting ("marked absent 10 min ago"), and sub-second countdown timer calculations in the CBT runner.
+6. **Lodash-es**: Tree-shakeable utility functions for debouncing live searches, throttling CBT autosave heartbeats, and immutable manipulation of nested timetable grids.
+7. **Drizzle ORM**: Powers the database layer of the dedicated Better Auth microservice and provides type-safe, sub-millisecond SQLite WAL queries in the Local Exam Venue Server (EVS).
+8. **Vercel**: Edge CDN hosting platform for the React Web Portal and serverless runtime for Better Auth, providing global asset caching and automated preview deployments.
+9. **Resend**: Transactional email service using React Email templates for delivering monthly fee invoices, official receipt PDFs, report cards, and 2FA authentication alerts to parents and staff.
+10. **Sentry**: Distributed error monitoring and performance profiling across ASP.NET Core backend, React web portal, and Expo mobile apps, providing real-time alerts for CBT examination workstation crashes.
 
 3. High-Level System Architecture
 
