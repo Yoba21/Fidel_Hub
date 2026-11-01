@@ -1,4 +1,4 @@
-# Build and compilation outputs
+﻿# Build and compilation outputs
 bin/
 obj/
 dist/
@@ -49,4 +49,3 @@ TestResults/
 coverage/
 *.lcov
 
-docs/
