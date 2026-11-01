@@ -858,4 +858,531 @@ All referenced records must belong to the same tenant and branch.
 
 Represents a class attendance session.
 
-*(Awaiting continuation)*
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| class_id | UUID | Required |
+| section_id | UUID | Required |
+| session_date | DATE | Required |
+| session_type | VARCHAR(30) | Required (HOMEROOM, PERIOD) |
+| period_number | INTEGER | Nullable (Required if PERIOD) |
+| 	aken_by | UUID | Required (FK to staff) |
+| status | VARCHAR(30) | Required (SUBMITTED, LOCKED) |
+| created_at | TIMESTAMPTZ | Required |
+
+Constraints:
+UNIQUE (tenant_id, branch_id, class_id, section_id, session_date, session_type, period_number)
+
+### 13.2 ttendance.records
+
+Stores attendance record for each student in a session.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| session_id | UUID | Required (FK to attendance.sessions) |
+| student_id | UUID | Required (FK to students.students) |
+| status | VARCHAR(20) | Required (PRESENT, ABSENT_UNEXCUSED, ABSENT_EXCUSED, LATE, HALF_DAY) |
+| rrival_time | TIME | Nullable |
+| emarks | TEXT | Nullable |
+| created_at | TIMESTAMPTZ | Required |
+
+Constraints:
+UNIQUE (tenant_id, session_id, student_id)
+FOREIGN KEY (tenant_id, branch_id, session_id) REFERENCES attendance.sessions (tenant_id, branch_id, id)
+FOREIGN KEY (tenant_id, student_id) REFERENCES students.students (tenant_id, id)
+
+### 13.3 ttendance.corrections
+
+Audit log of any post-submission attendance modifications.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| ecord_id | UUID | Required (FK to attendance.records) |
+| previous_status | VARCHAR(20) | Required |
+| 
+ew_status | VARCHAR(20) | Required |
+| eason | TEXT | Required |
+| uthorized_by | UUID | Required |
+| corrected_at | TIMESTAMPTZ | Required |
+
+---
+
+## 14. Examination & CBT Schema
+
+### 14.1 examinations.question_banks
+
+Containers for subject/department questions.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| 
+ame | VARCHAR(150) | Required |
+| subject_id | UUID | Required (FK to academic.subjects) |
+| class_id | UUID | Required (FK to academic.classes) |
+| description | TEXT | Nullable |
+| is_active | BOOLEAN | Default true |
+| created_at | TIMESTAMPTZ | Required |
+
+### 14.2 examinations.questions
+
+Individual questions supporting rich formatting, KaTeX, and Bloom's taxonomy.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| question_bank_id | UUID | Required (FK to question_banks) |
+| question_text | TEXT | Required (Supports Markdown & KaTeX formulas) |
+| question_type | VARCHAR(30) | Required (MCQ, MULTI_SELECT, TRUE_FALSE, FILL_BLANK, THEORY) |
+| difficulty | VARCHAR(20) | Required (EASY, MEDIUM, HARD) |
+| cognitive_level | VARCHAR(30) | Optional (REMEMBERING, UNDERSTANDING, APPLYING, ANALYZING) |
+| 	opic_tag | VARCHAR(100) | Optional |
+| points | NUMERIC(5,2) | Required (Default 1.00) |
+| media_url | TEXT | Nullable (Diagram / Image attachment) |
+| ubric_explanation| TEXT | Nullable (Grading notes for theory questions) |
+| created_by | UUID | Required |
+| created_at | TIMESTAMPTZ | Required |
+
+### 14.3 examinations.question_options
+
+Options for objective questions (MCQ / Multi-Select / True-False).
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| question_id | UUID | Required (FK to questions) |
+| option_text | TEXT | Required |
+| option_order | INTEGER | Required |
+| is_correct | BOOLEAN | Required |
+| explanation | TEXT | Nullable |
+
+Constraint:
+UNIQUE (tenant_id, question_id, option_order)
+
+### 14.4 examinations.exam_papers
+
+Assembled examination papers ready for sitting.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| cademic_year_id | UUID | Required |
+| 	erm_id | UUID | Required |
+| subject_id | UUID | Required |
+| class_id | UUID | Required |
+| 	itle | VARCHAR(200) | Required |
+| 	otal_marks | NUMERIC(6,2) | Required |
+| pass_marks | NUMERIC(6,2) | Required |
+| duration_minutes | INTEGER | Required |
+| shuffle_questions | BOOLEAN | Default true |
+| shuffle_options | BOOLEAN | Default true |
+| status | VARCHAR(30) | Required (DRAFT, PUBLISHED, ARCHIVED) |
+| created_at | TIMESTAMPTZ | Required |
+
+### 14.5 examinations.exam_schedules
+
+Scheduling exam paper sessions for classes or specific venues.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| exam_paper_id | UUID | Required (FK to exam_papers) |
+| section_id | UUID | Nullable (If branch-wide, null) |
+| start_time | TIMESTAMPTZ | Required |
+| end_time | TIMESTAMPTZ | Required |
+| enue_identifier | VARCHAR(100) | Optional |
+| is_time_locked | BOOLEAN | Default true |
+| package_checksum | VARCHAR(64) | SHA-256 for offline venue validation |
+
+### 14.6 examinations.cbt_sessions
+
+Individual student exam sitting session.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK (Server ID or Client UUID generated offline) |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| exam_paper_id | UUID | Required |
+| student_id | UUID | Required |
+| session_token | UUID | Unique session token |
+| started_at | TIMESTAMPTZ | Required |
+| submitted_at | TIMESTAMPTZ | Nullable until finished |
+| 	ime_spent_seconds| INTEGER | Required Default 0 |
+| is_final | BOOLEAN | Default false |
+| status | VARCHAR(30) | Required (IN_PROGRESS, SUBMITTED, AUTO_SUBMITTED, GRADED) |
+| 	otal_score | NUMERIC(6,2) | Nullable until graded |
+| sync_status | VARCHAR(20) | Default 'SYNCED' |
+| enue_server_id | VARCHAR(100) | Nullable |
+
+Constraint:
+UNIQUE (tenant_id, exam_paper_id, student_id)
+
+### 14.7 examinations.student_answers
+
+Student responses to individual questions with autosave tracking.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| session_id | UUID | Required (FK to cbt_sessions) |
+| question_id | UUID | Required (FK to questions) |
+| selected_option_ids| JSONB | Nullable (Array of option UUIDs) |
+| 	ext_answer | TEXT | Nullable (For theory questions) |
+| is_flagged_review | BOOLEAN | Default false |
+| is_auto_graded | BOOLEAN | Default false |
+| score_awarded | NUMERIC(5,2) | Nullable |
+| grader_feedback | TEXT | Nullable |
+| nswered_at | TIMESTAMPTZ | Required |
+| utosave_version | INTEGER | Default 1 |
+
+Constraint:
+UNIQUE (tenant_id, session_id, question_id)
+
+---
+
+## 15. Academic Curriculum Extensions & Timetables
+
+### 15.1 cademic.lesson_plans
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| staff_member_id | UUID | Required |
+| subject_id | UUID | Required |
+| class_id | UUID | Required |
+| week_number | INTEGER | Required |
+| 	opic_title | VARCHAR(200) | Required |
+| learning_objectives| TEXT | Required |
+| 	eaching_methodology| TEXT | Required |
+| status | VARCHAR(30) | Required (DRAFT, SUBMITTED, APPROVED, REVISION_REQUESTED) |
+| eviewed_by | UUID | Nullable |
+| eviewed_at | TIMESTAMPTZ | Nullable |
+| eview_comments | TEXT | Nullable |
+
+### 15.2 cademic.timetables
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| cademic_year_id | UUID | Required |
+| 	erm_id | UUID | Required |
+| class_id | UUID | Required |
+| section_id | UUID | Required |
+| day_of_week | INTEGER | Required (1=Monday .. 5=Friday, 6=Saturday) |
+| period_number | INTEGER | Required |
+| start_time | TIME | Required |
+| end_time | TIME | Required |
+| subject_id | UUID | Required |
+| 	eacher_id | UUID | Required |
+| oom_number | VARCHAR(50) | Optional |
+
+Constraints:
+UNIQUE (tenant_id, branch_id, class_id, section_id, day_of_week, period_number)
+UNIQUE (tenant_id, branch_id, teacher_id, day_of_week, period_number) -- Prevents teacher double booking
+
+### 15.3 cademic.affective_traits
+
+Behavioral and character development evaluation areas.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| 	rait_name | VARCHAR(100) | Required (e.g. Punctuality, Neatness, Teamwork, Leadership) |
+| 	rait_category | VARCHAR(50) | Required (AFFECTIVE, PSYCHOMOTOR) |
+| description | TEXT | Optional |
+
+### 15.4 cademic.student_trait_scores
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| cademic_year_id | UUID | Required |
+| 	erm_id | UUID | Required |
+| student_id | UUID | Required |
+| 	rait_id | UUID | Required |
+| ating_score | INTEGER | Required (Scale 1 to 5) |
+| evaluated_by | UUID | Required (Teacher) |
+
+Constraint:
+UNIQUE (tenant_id, branch_id, term_id, student_id, trait_id)
+
+### 15.5 cademic.gradebooks & eport_cards
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| cademic_year_id | UUID | Required |
+| 	erm_id | UUID | Required |
+| student_id | UUID | Required |
+| class_id | UUID | Required |
+| section_id | UUID | Required |
+| 	otal_marks | NUMERIC(7,2) | Required |
+| verage_score | NUMERIC(5,2) | Required |
+| gpa | NUMERIC(4,2) | Optional |
+| class_rank | INTEGER | Optional |
+| section_rank | INTEGER | Optional |
+| principal_remark | TEXT | Optional |
+| erification_hash | VARCHAR(64) | SHA-256 QR code digest |
+| is_published | BOOLEAN | Default false |
+| published_at | TIMESTAMPTZ | Nullable |
+
+---
+
+## 16. Fee & Invoicing Schema (No Full General Ledger)
+
+### 16.1 inance.fee_categories
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| 
+ame | VARCHAR(100) | Required (Tuition, Registration, Lab, Transport) |
+| code | VARCHAR(50) | Required |
+| description | TEXT | Optional |
+| is_recurring | BOOLEAN | Default true |
+
+Constraint:
+UNIQUE (tenant_id, branch_id, code)
+
+### 16.2 inance.fee_structures
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| cademic_year_id | UUID | Required |
+| 	erm_id | UUID | Required |
+| class_id | UUID | Required |
+| 
+ame | VARCHAR(150) | Required |
+| 	otal_base_amount | NUMERIC(14,2)| Required |
+| status | VARCHAR(30) | Required (ACTIVE, ARCHIVED) |
+
+### 16.3 inance.fee_structure_lines
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ee_structure_id | UUID | Required (FK to fee_structures) |
+| ee_category_id | UUID | Required (FK to fee_categories) |
+| mount | NUMERIC(14,2)| Required |
+| is_mandatory | BOOLEAN | Default true |
+
+### 16.4 inance.student_fee_assignments
+
+Captures an immutable snapshot of student fee commitments (with approved scholarships/discounts).
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| student_id | UUID | Required (FK to students) |
+| cademic_year_id | UUID | Required |
+| 	erm_id | UUID | Required |
+| ee_structure_id | UUID | Required |
+| discount_percentage| NUMERIC(5,2)| Default 0.00 |
+| discount_reason | VARCHAR(255) | Optional |
+| custom_net_amount | NUMERIC(14,2)| Required (Frozen snapshot) |
+| pproved_by | UUID | Optional |
+| created_at | TIMESTAMPTZ | Required |
+
+Constraint:
+UNIQUE (tenant_id, branch_id, term_id, student_id)
+
+### 16.5 inance.invoices
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| student_id | UUID | Required (FK to students) |
+| cademic_year_id | UUID | Required |
+| 	erm_id | UUID | Required |
+| invoice_number | VARCHAR(50) | Required |
+| due_date | DATE | Required |
+| subtotal_amount | NUMERIC(14,2)| Required |
+| discount_amount | NUMERIC(14,2)| Default 0.00 |
+| 	otal_amount | NUMERIC(14,2)| Required |
+| paid_amount | NUMERIC(14,2)| Default 0.00 |
+| status | VARCHAR(30) | Required (DRAFT, POSTED, PARTIAL, PAID, CANCELLED) |
+| posted_at | TIMESTAMPTZ | Nullable |
+| created_at | TIMESTAMPTZ | Required |
+
+Constraints:
+UNIQUE (tenant_id, branch_id, invoice_number)
+CHECK (paid_amount <= total_amount)
+
+### 16.6 inance.invoice_items
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| invoice_id | UUID | Required (FK to invoices) |
+| ee_category_id | UUID | Required |
+| description | VARCHAR(200) | Required |
+| quantity | INTEGER | Default 1 |
+| unit_price | NUMERIC(14,2)| Required |
+| line_total | NUMERIC(14,2)| Required |
+
+### 16.7 inance.payments
+
+Records incoming payments against invoices with idempotency protection.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| invoice_id | UUID | Required (FK to invoices) |
+| student_id | UUID | Required |
+| mount | NUMERIC(14,2)| Required |
+| payment_date | DATE | Required |
+| payment_method | VARCHAR(30) | Required (CASH, TELEBIRR, CBE_BIRR, BANK_SLIP) |
+| eference_number | VARCHAR(100) | Nullable |
+| idempotency_key | UUID | Required, UNIQUE |
+| cashier_user_id | UUID | Required |
+| created_at | TIMESTAMPTZ | Required |
+
+Constraints:
+UNIQUE (tenant_id, idempotency_key)
+CHECK (amount > 0)
+
+### 16.8 inance.receipts
+
+Sequential official receipts.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| payment_id | UUID | Required (FK to payments) |
+| eceipt_number | VARCHAR(50) | Required |
+| issued_at | TIMESTAMPTZ | Required |
+| is_cancelled | BOOLEAN | Default false |
+
+Constraint:
+UNIQUE (tenant_id, branch_id, receipt_number)
+
+---
+
+## 17. Health Schema
+
+### 17.1 health.student_health_profiles
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| student_id | UUID | Required, UNIQUE |
+| lood_group | VARCHAR(10) | Optional |
+| llergies | TEXT | Optional |
+| chronic_conditions| TEXT | Optional |
+| emergency_instructions| TEXT | Optional |
+| preferred_hospital| VARCHAR(200) | Optional |
+
+### 17.2 health.clinic_visits
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| student_id | UUID | Required |
+| isit_date | TIMESTAMPTZ | Required |
+| symptoms | TEXT | Required |
+| ction_taken | TEXT | Required |
+| 	emperature_celsius| NUMERIC(4,1)| Optional |
+| parent_notified | BOOLEAN | Default false |
+| ttended_by | UUID | Required (Staff) |
+
+---
+
+## 18. Audit & Integration Schema
+
+### 18.1 udit.activity_logs
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Nullable |
+| user_id | UUID | Nullable |
+| module | VARCHAR(50) | Required |
+| ction | VARCHAR(100) | Required |
+| entity_name | VARCHAR(100) | Required |
+| entity_id | UUID | Nullable |
+| old_values | JSONB | Nullable |
+| 
+ew_values | JSONB | Nullable |
+| ip_address | VARCHAR(45) | Nullable |
+| occurred_at | TIMESTAMPTZ | Required |
+
+### 18.2 integration.outbox_messages
+
+Transactional Outbox pattern message queue.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| event_type | VARCHAR(150) | Required |
+| payload | JSONB | Required |
+| occurred_at | TIMESTAMPTZ | Required |
+| processed_at | TIMESTAMPTZ | Nullable |
+| etry_count | INTEGER | Default 0 |
+| error | TEXT | Nullable |
+
+Index:
+CREATE INDEX ix_outbox_unprocessed ON integration.outbox_messages (occurred_at) WHERE processed_at IS NULL;
+
+### 18.3 integration.offline_cbt_sync_batches
+
+Tracks offline CBT batches ingested from local exam venue servers.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK |
+| 	enant_id | UUID | Required |
+| ranch_id | UUID | Required |
+| enue_server_id | VARCHAR(100) | Required |
+| atch_token | UUID | Required, UNIQUE |
+| exam_paper_id | UUID | Required |
+| sessions_count | INTEGER | Required |
+| eceived_at | TIMESTAMPTZ | Required |
+| processed_at | TIMESTAMPTZ | Nullable |
+| status | VARCHAR(30) | Required (RECEIVED, PROCESSED, PARTIAL_ERRORS) |
