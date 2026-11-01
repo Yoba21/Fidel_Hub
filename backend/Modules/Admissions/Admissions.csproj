@@ -6,6 +6,6 @@
     <RootNamespace>School.Modules.Admissions</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\School.Shared\School.Shared.csproj" />
+    <ProjectReference Include="../../School.Shared/School.Shared.csproj" />
   </ItemGroup>
 </Project>

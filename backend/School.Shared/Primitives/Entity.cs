@@ -1,25 +1,29 @@
 namespace School.Shared.Primitives;
 
-public interface IAuditableEntity
+/// <summary>
+/// Base class for all domain entities with a Guid identifier.
+/// </summary>
+public abstract class Entity
 {
-    DateTime CreatedAtUtc { get; set; }
-    string? CreatedBy { get; set; }
-    DateTime? LastModifiedAtUtc { get; set; }
-    string? LastModifiedBy { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    private readonly List<object> _domainEvents = new();
+    public IReadOnlyCollection<object> DomainEvents => _domainEvents.AsReadOnly();
+
+    public void AddDomainEvent(object domainEvent) => _domainEvents.Add(domainEvent);
+    public void ClearDomainEvents() => _domainEvents.Clear();
 }
 
-public interface ITenantScopedEntity
+/// <summary>
+/// Generic base entity supporting custom identifier types.
+/// </summary>
+public abstract class BaseEntity<TId>
 {
-    Guid TenantId { get; set; }
-}
+    public TId Id { get; set; } = default!;
 
-public abstract class BaseEntity<TId> : ITenantScopedEntity, IAuditableEntity
-{
-    public Guid TenantId { get; set; }
-    public TId Id { get; protected set; } = default!;
+    private readonly List<object> _domainEvents = new();
+    public IReadOnlyCollection<object> DomainEvents => _domainEvents.AsReadOnly();
 
-    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
-    public string? CreatedBy { get; set; }
-    public DateTime? LastModifiedAtUtc { get; set; }
-    public string? LastModifiedBy { get; set; }
+    public void AddDomainEvent(object domainEvent) => _domainEvents.Add(domainEvent);
+    public void ClearDomainEvents() => _domainEvents.Clear();
 }
