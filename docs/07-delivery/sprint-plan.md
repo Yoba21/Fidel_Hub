@@ -5,9 +5,9 @@
 | Document Information | Details |
 | :--- | :--- |
 | **Document ID** | SPL-001 |
-| **Version** | 1.1 (Updated with Live Sprint Progress Tracking) |
+| **Version** | 1.2 (Sprint 1 Substantially Implemented) |
 | **Status** | Approved Baseline |
-| **Current Sprint** | **Sprint 1: Multi-Tenancy Kernel, Better Auth & Platform Core (~40% Complete)** |
+| **Current Sprint** | **Sprint 1: Multi-Tenancy Kernel, Better Auth & Platform Core (~85% Complete)** |
 | **Detailed Plan** | See [`development-plan.md`](./development-plan.md) for task-by-task breakdown |
 
 ---
@@ -26,7 +26,7 @@ Each sprint runs on a strict two-week iteration cycle:
 
 | Sprint | Horizon / Focus | Target Window | Status | Completion % |
 | :--- | :--- | :--- | :---: | :---: |
-| **Sprint 1** | **Multi-Tenancy Kernel, Better Auth & Platform Core** | **Nov 1 – Nov 14, 2026** | **ACTIVE** | **~40%** |
+| **Sprint 1** | **Multi-Tenancy Kernel, Better Auth & Platform Core** | **Nov 1 – Nov 14, 2026** | **ACTIVE** | **~85%** |
 | **Sprint 2** | Student SIS, Online Admissions & Dual Calendar | Nov 15 – Nov 28, 2026 | Scheduled | 0% |
 | **Sprint 3** | Academic Timetables, Attendance & Automated SMS | Nov 29 – Dec 12, 2026 | Scheduled | 0% |
 | **Sprint 4** | Student Fee Management & Invoicing (No GL) | Dec 13 – Dec 26, 2026 | Scheduled | 0% |
@@ -43,9 +43,10 @@ Each sprint runs on a strict two-week iteration cycle:
   * [x] *STORY-00*: Architecture & 15-Module Documentation Suite (Completed).
   * [x] *STORY-00B*: Root Solution Scaffolding (`FidelHub.sln`) & GitHub Actions CI Workflow (Completed).
   * [x] *STORY-04*: Scaffold React 19 + Vite web portal with Fidel Hub brand design system (Completed).
-  * [ ] *STORY-01*: Configure PostgreSQL 16+ with 15 schemas and base tenant isolation policies (Pending).
-  * [ ] *STORY-02*: Deploy Better Auth Node service with `@better-auth/organization` and JWT plugins (Pending).
-  * [ ] *STORY-03*: Implement ASP.NET Core `TenantBranchResolutionMiddleware` and connection interceptors (In Progress - 30%).
+  * [x] *STORY-01*: Configure PostgreSQL 16+ with 15 schemas, `fidel_app_user` role, and base RLS policies in `infrastructure/database/init-rls.sql` (Completed).
+  * [x] *STORY-02*: Deploy Better Auth Node service scaffolding with JWT issuance and JWKS public keys in `services/auth/` (Completed).
+  * [x] *STORY-03*: Implement ASP.NET Core `TenantBranchResolutionMiddleware`, `TenantConnectionInterceptor`, and `FidelHubDbContext` in `backend/School.Api/` and `backend/School.Shared/` (Completed).
+  * [x] *STORY-03B*: Author xUnit unit and architecture test suites in `backend/tests/` (Completed).
 * **Deliverable**: Authenticated multi-tenant shell verifying that Tenant A cannot query Tenant B data.
 
 ### Sprint 2: Student SIS, Online Admissions & Dual Calendar
