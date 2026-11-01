@@ -22,13 +22,13 @@ The visual identity incorporates the Ge'ez character **ፊ** (*Fi* for Fidel / A
 ## Architectural Pillars
 
 1. **Domain-Driven Modular Monolith**:
-   Organized by business domains rather than layers (`Students`, `Academics`, `Finance`, `Examinations`, `Attendance`, `Identity`, etc.).
+   Organized by business domains rather than layers (`Students`, `Academics`, `Finance`, `Examinations`, `Attendance`, `Identity`, `Communication`, `Reporting`).
 2. **Database-Enforced Tenant Isolation**:
    Every tenant-scoped table features `tenant_id` with PostgreSQL Row-Level Security (RLS) and composite foreign keys `(tenant_id, id)`. Standard app queries connect with a non-superuser role preventing accidental data leaks.
-3. **Double-Entry Financial Accounting**:
-   Tuition and school fee transactions are committed to an immutable double-entry ledger ($\sum \text{Debit} = \sum \text{Credit}$) with idempotency keys and transactional outbox event dispatching.
-4. **Offline-First Mobile Synchronization**:
-   Mobile application uses React Native + Expo with persistent SQLite storage, an offline operation queue (`sync_queue`), and delta sync for intermittent connectivity.
+3. **Student Fee & Payment Integrity**:
+   Tuition and school fee transactions are tracked against posted invoices with historical snapshots, idempotency keys, sequential official receipts, and transactional outbox event dispatching.
+4. **Offline-First CBT & Exam Engine**:
+   Mobile and lab clients use React Native + Expo with persistent SQLite storage to deliver offline assessments, auto-save test progress, and sync completed exam sessions reliably.
 
 ---
 

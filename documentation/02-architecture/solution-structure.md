@@ -25,9 +25,8 @@ Fidel Hub/
 │   │   ├── Admissions/                  # Application intake, enrollment workflows
 │   │   ├── Academics/                   # Academic years, terms, classes, subjects
 │   │   ├── Attendance/                  # Daily/period attendance tracking
-│   │   ├── Examinations/                # Exam schedules, marks, report cards
-│   │   ├── Finance/                     # Invoices, fee structures, payments, ledger
-│   │   ├── HR/                          # Staff records, contracts, payroll
+│   │   ├── Examinations/                # Exam schedules, marks, CBT, report cards
+│   │   ├── Finance/                     # Invoices, fee structures, payments, receipts
 │   │   ├── Communication/               # SMS/Email gateways, notifications, SignalR
 │   │   └── Reporting/                   # Aggregated statistics, exports
 │   └── tests/
