@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import {
   Box,
   Grid,
@@ -6,15 +6,26 @@ import {
   CardContent,
   Typography,
   Chip,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
   LinearProgress,
 } from '@mui/material';
 import {
   Users,
   CheckCircle2,
   TrendingUp,
-  Database,
+  FileText,
   ShieldCheck,
   Smartphone,
+  Download,
+  Calendar,
+  Layers,
 } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
@@ -22,83 +33,134 @@ export const Dashboard: React.FC = () => {
     {
       title: 'Active Students',
       value: '1,428',
-      change: '+42 this term',
-      icon: <Users size={24} color="#1B5E3F" />,
-      color: '#1B5E3F',
+      change: '+42 this academic year',
+      icon: <Users size={20} color="#1B5E3F" />,
     },
     {
       title: 'Tuition Collected',
       value: 'ETB 3,842,500',
-      change: '94% of billed total',
-      icon: <TrendingUp size={24} color="#E0A526" />,
-      color: '#E0A526',
+      change: '94.2% of billed term total',
+      icon: <TrendingUp size={20} color="#E0A526" />,
     },
     {
-      title: 'Today Attendance',
-      value: '97.2%',
-      change: '1,388 present',
-      icon: <CheckCircle2 size={24} color="#1B5E3F" />,
-      color: '#1B5E3F',
+      title: "Today's Attendance",
+      value: '97.4%',
+      change: '1,391 Present · 37 Absent',
+      icon: <CheckCircle2 size={20} color="#1B5E3F" />,
+    },
+    {
+      title: 'Active CBT Assessment',
+      value: 'Grade 10 Biology',
+      change: '320 Students Sitting (LAN Sync)',
+      icon: <Layers size={20} color="#1B5E3F" />,
+    },
+  ];
+
+  const recentTransactions = [
+    {
+      id: 'RCP-2026-0089',
+      student: 'Almaz Hailu Bekele',
+      grade: 'Grade 9-A',
+      amount: 'ETB 4,500.00',
+      method: 'Telebirr',
+      status: 'Confirmed',
+    },
+    {
+      id: 'RCP-2026-0088',
+      student: 'Dawit Yohannes',
+      grade: 'Grade 10-B',
+      amount: 'ETB 2,250.00',
+      method: 'CBE Birr',
+      status: 'Confirmed',
+    },
+    {
+      id: 'RCP-2026-0087',
+      student: 'Selamawit Tadesse',
+      grade: 'Grade 7-C',
+      amount: 'ETB 4,500.00',
+      method: 'Bank Slip',
+      status: 'Confirmed',
     },
   ];
 
   return (
-    <Box sx={{ p: 4, maxWidth: 1400, mx: 'auto' }}>
-      {/* Welcome Banner */}
+    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1600, mx: 'auto' }}>
+      {/* 1. Page Header & Action Bar */}
       <Box
         sx={{
-          mb: 4,
-          p: 3.5,
-          borderRadius: 3,
-          background: 'linear-gradient(135deg, #1B5E3F 0%, #12422C 100%)',
-          color: '#FFFFFF',
           display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
           justifyContent: 'space-between',
-          alignItems: 'center',
-          boxShadow: '0 4px 12px rgba(27, 94, 63, 0.2)',
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          gap: 2,
+          mb: 3,
         }}
       >
         <Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: '#FFFFFF' }}>
-              Welcome to Fidel Hub
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#1F2933', fontSize: 22 }}>
+              Campus Overview
             </Typography>
             <Chip
-              label="Tenant: Fidel Hub Academy"
+              label="Academic Year 2026/27 (Term 1)"
               size="small"
               sx={{
-                bgcolor: '#E0A526',
-                color: '#1F2933',
-                fontWeight: 700,
+                bgcolor: 'rgba(27, 94, 63, 0.08)',
+                color: '#1B5E3F',
+                fontWeight: 600,
+                fontSize: 12,
               }}
             />
           </Box>
-          <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.85)' }}>
-            Domain-driven modular monolith with PostgreSQL Row-Level Security, fee invoice integrity, and offline CBT exams.
+          <Typography variant="body2" sx={{ color: '#6B7280' }}>
+            Kera Campus · Real-time operational, academic, and fee collection telemetry.
           </Typography>
         </Box>
-        <Box
-          component="img"
-          src="/assets/fidel-hub-symbol.svg"
-          alt="ፊ Fidel Hub Symbol"
-          sx={{ height: 64, opacity: 0.95 }}
-        />
+
+        <Box sx={{ display: 'flex', gap: 1.5 }}>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<Calendar size={16} />}
+            sx={{
+              borderColor: '#E5E7EB',
+              color: '#4B5563',
+              textTransform: 'none',
+              fontWeight: 600,
+            }}
+          >
+            Ethiopian: Tikimt 2019
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<Download size={16} />}
+            sx={{
+              borderColor: '#E5E7EB',
+              color: '#4B5563',
+              textTransform: 'none',
+              fontWeight: 600,
+            }}
+          >
+            Export Summary
+          </Button>
+        </Box>
       </Box>
 
-      {/* Primary KPI Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      {/* 2. Primary KPI Stat Cards */}
+      <Grid container spacing={2.5} sx={{ mb: 3 }}>
         {stats.map((stat, i) => (
-          <Grid item xs={12} sm={6} md={4} key={i}>
-            <Card>
-              <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                  <Typography variant="body2" sx={{ color: '#6B7280', fontWeight: 600 }}>
+          <Grid item xs={12} sm={6} md={3} key={i}>
+            <Card sx={{ height: '100%', borderColor: '#E5E7EB' }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                  <Typography variant="body2" sx={{ color: '#6B7280', fontWeight: 600, fontSize: 13 }}>
                     {stat.title}
                   </Typography>
                   <Box
                     sx={{
-                      p: 1,
-                      borderRadius: 2,
+                      p: 0.8,
+                      borderRadius: 1.5,
                       bgcolor: 'rgba(27, 94, 63, 0.08)',
                       display: 'flex',
                     }}
@@ -106,10 +168,10 @@ export const Dashboard: React.FC = () => {
                     {stat.icon}
                   </Box>
                 </Box>
-                <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, fontSize: 24, mb: 0.5, color: '#1F2933' }}>
                   {stat.value}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#1B5E3F', fontWeight: 600 }}>
+                <Typography variant="caption" sx={{ color: '#1B5E3F', fontWeight: 600, fontSize: 12 }}>
                   {stat.change}
                 </Typography>
               </CardContent>
@@ -118,64 +180,215 @@ export const Dashboard: React.FC = () => {
         ))}
       </Grid>
 
-      {/* Architectural Health & Invariants */}
-      <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>
-        Platform Architecture & Invariants Status
-      </Typography>
+      {/* 3. Main Workspace: Two-Column Layout */}
       <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <Card sx={{ height: '100%' }}>
+        {/* Left Column: CBT Engine Status & Recent Payments */}
+        <Grid item xs={12} lg={8}>
+          {/* Active CBT Exam Monitor Banner */}
+          <Card sx={{ mb: 3, border: '1px solid #E5E7EB' }}>
             <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                <ShieldCheck size={22} color="#1B5E3F" />
-                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                  Tenant Isolation
-                </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box
+                    component="img"
+                    src="/assets/icon-exams-assessments.svg"
+                    alt="CBT Exams"
+                    sx={{ width: 28, height: 28 }}
+                  />
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                      Live Computer-Based Test (CBT) Sitting
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#6B7280' }}>
+                      Package ID: CBT-G10-BIO-T1 · Local Venue Engine: Active
+                    </Typography>
+                  </Box>
+                </Box>
+                <Chip
+                  label="100% Offline Resilient"
+                  size="small"
+                  sx={{
+                    bgcolor: 'rgba(27, 94, 63, 0.10)',
+                    color: '#1B5E3F',
+                    fontWeight: 700,
+                  }}
+                />
               </Box>
-              <Typography variant="body2" sx={{ color: '#4B5563', mb: 2 }}>
-                Enforced via PostgreSQL Row-Level Security (RLS) with composite primary keys `(tenant_id, id)`.
+
+              <Box sx={{ mb: 1.5 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#4B5563' }}>
+                    Student Submissions Progress (284 / 320 submitted)
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#1B5E3F' }}>
+                    88.7%
+                  </Typography>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={88.7}
+                  sx={{
+                    height: 8,
+                    borderRadius: 4,
+                    bgcolor: '#E5E7EB',
+                    '& .MuiLinearProgress-bar': { bgcolor: '#1B5E3F' },
+                  }}
+                />
+              </Box>
+              <Typography variant="caption" sx={{ color: '#6B7280' }}>
+                Continuous auto-save active. Local SQLite WAL buffering student responses. Zero internet dependency.
               </Typography>
-              <Chip label="RLS Active" color="success" size="small" />
+            </CardContent>
+          </Card>
+
+          {/* Recent Fee Payments Table */}
+          <Card sx={{ border: '1px solid #E5E7EB' }}>
+            <CardContent sx={{ p: 0 }}>
+              <Box sx={{ p: 2.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box
+                    component="img"
+                    src="/assets/icon-fees-payments.svg"
+                    alt="Fees"
+                    sx={{ width: 24, height: 24 }}
+                  />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: 16 }}>
+                    Recent Confirmed Fee Collections
+                  </Typography>
+                </Box>
+                <Button size="small" sx={{ color: '#1B5E3F', textTransform: 'none', fontWeight: 600 }}>
+                  View All Invoices →
+                </Button>
+              </Box>
+
+              <TableContainer component={Paper} elevation={0}>
+                <Table size="small">
+                  <TableHead sx={{ backgroundColor: '#FAF7F0' }}>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 700, fontSize: 12, color: '#6B7280' }}>Receipt #</TableCell>
+                      <TableCell sx={{ fontWeight: 700, fontSize: 12, color: '#6B7280' }}>Student</TableCell>
+                      <TableCell sx={{ fontWeight: 700, fontSize: 12, color: '#6B7280' }}>Class</TableCell>
+                      <TableCell sx={{ fontWeight: 700, fontSize: 12, color: '#6B7280' }}>Amount</TableCell>
+                      <TableCell sx={{ fontWeight: 700, fontSize: 12, color: '#6B7280' }}>Channel</TableCell>
+                      <TableCell sx={{ fontWeight: 700, fontSize: 12, color: '#6B7280' }}>Status</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {recentTransactions.map((tx) => (
+                      <TableRow key={tx.id} hover>
+                        <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600, fontSize: 12 }}>
+                          {tx.id}
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 600, fontSize: 13 }}>{tx.student}</TableCell>
+                        <TableCell sx={{ color: '#6B7280', fontSize: 13 }}>{tx.grade}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, fontSize: 13, color: '#1F2933' }}>
+                          {tx.amount}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 12 }}>{tx.method}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={tx.status}
+                            size="small"
+                            sx={{
+                              height: 22,
+                              fontSize: 11,
+                              fontWeight: 700,
+                              bgcolor: 'rgba(27, 94, 63, 0.10)',
+                              color: '#1B5E3F',
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={4}>
-          <Card sx={{ height: '100%' }}>
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                <Database size={22} color="#E0A526" />
-                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                  Fee & Payment Integrity
-                </Typography>
-              </Box>
-              <Typography variant="body2" sx={{ color: '#4B5563', mb: 2 }}>
-                Posted invoice immutability, historical fee snapshots, and idempotency protection on payment receipts.
+        {/* Right Column: Platform Architecture & Security Health */}
+        <Grid item xs={12} lg={4}>
+          <Card sx={{ mb: 3, border: '1px solid #E5E7EB' }}>
+            <CardContent sx={{ p: 2.5 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2, fontSize: 15 }}>
+                Platform Invariants & Guards
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Chip label="Idempotency & Snapshots Active" color="success" size="small" />
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                  <ShieldCheck size={20} color="#1B5E3F" style={{ marginTop: 2, flexShrink: 0 }} />
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      PostgreSQL Kernel RLS
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#6B7280', display: 'block' }}>
+                      Enforced via non-superuser session role. Zero cross-tenant leakage.
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                  <TrendingUp size={20} color="#E0A526" style={{ marginTop: 2, flexShrink: 0 }} />
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      Fee Snapshots & Idempotency
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#6B7280', display: 'block' }}>
+                      Student terms protected from retroactive price edits. Immutable posted invoices.
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                  <Smartphone size={20} color="#1B5E3F" style={{ marginTop: 2, flexShrink: 0 }} />
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      Better Auth Service
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#6B7280', display: 'block' }}>
+                      JWT claims mapped to organization tenants and branch permissions.
+                    </Typography>
+                  </Box>
+                </Box>
               </Box>
             </CardContent>
           </Card>
-        </Grid>
 
-        <Grid item xs={12} md={4}>
-          <Card sx={{ height: '100%' }}>
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                <Smartphone size={22} color="#1B5E3F" />
-                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                  Offline CBT Exam Engine
-                </Typography>
-              </Box>
-              <Typography variant="body2" sx={{ color: '#4B5563', mb: 1 }}>
-                Encrypted exam package download, student progress auto-save, and idempotent test submission sync.
+          {/* Quick Shortcuts */}
+          <Card sx={{ border: '1px solid #E5E7EB' }}>
+            <CardContent sx={{ p: 2.5 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, fontSize: 15 }}>
+                Quick Module Actions
               </Typography>
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="caption" sx={{ color: '#6B7280' }}>
-                  CBT sync worker health
-                </Typography>
-                <LinearProgress variant="determinate" value={100} sx={{ height: 6, borderRadius: 3, mt: 0.5, bgcolor: '#E5E7EB', '& .MuiLinearProgress-bar': { bgcolor: '#1B5E3F' } }} />
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  size="small"
+                  startIcon={<Users size={16} />}
+                  sx={{ justifyContent: 'flex-start', textTransform: 'none', color: '#1F2933', borderColor: '#E5E7EB' }}
+                >
+                  Register New Student Admission
+                </Button>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  size="small"
+                  startIcon={<Layers size={16} />}
+                  sx={{ justifyContent: 'flex-start', textTransform: 'none', color: '#1F2933', borderColor: '#E5E7EB' }}
+                >
+                  Create CBT Assessment Paper
+                </Button>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  size="small"
+                  startIcon={<FileText size={16} />}
+                  sx={{ justifyContent: 'flex-start', textTransform: 'none', color: '#1F2933', borderColor: '#E5E7EB' }}
+                >
+                  Generate Term Fee Invoices
+                </Button>
               </Box>
             </CardContent>
           </Card>
