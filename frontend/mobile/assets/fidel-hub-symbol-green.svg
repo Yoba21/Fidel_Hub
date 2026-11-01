@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Fidel Hub green symbol">
+
+<g>
+  <rect x="8" y="8" width="112" height="112" rx="27" fill="#FAF7F0"/>
+  <text x="64" y="87" text-anchor="middle" font-family="Noto Sans Ethiopic, Abyssinica SIL, sans-serif"
+        font-size="78" font-weight="700" fill="#1B5E3F">ፊ</text>
+  <path d="M30 104 C54 84 83 76 108 78 C83 87 56 99 30 104Z" fill="#E0A526"/>
+</g>
+</svg>

@@ -1,0 +1,50 @@
+# Build and compilation outputs
+bin/
+obj/
+dist/
+build/
+out/
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pfx
+*.key
+
+# IDE and OS
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.temp/
+.tmp/
+
+# Expo / React Native
+.expo/
+web-build/
+*.jks
+*.keystore
+
+# Test results & coverage
+TestResults/
+coverage/
+*.lcov

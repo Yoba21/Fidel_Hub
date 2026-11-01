@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 150" role="img" aria-labelledby="title desc">
+<title id="title">Fidel Hub primary logo</title><desc id="desc">Green rounded square with the Ge'ez letter Fi, gold accent, and Fidel Hub wordmark.</desc>
+
+<g>
+  <rect x="10" y="15" width="120" height="120" rx="28" fill="#1B5E3F"/>
+  <text x="70" y="94" text-anchor="middle" font-family="Noto Sans Ethiopic, Abyssinica SIL, sans-serif"
+        font-size="78" font-weight="700" fill="#FFFFFF">ፊ</text>
+  <path d="M34 119 C60 96 93 88 119 90 C92 100 62 113 34 119Z" fill="#E0A526"/>
+</g>
+<text x="158" y="94" font-family="Inter, Arial, sans-serif" font-size="70" font-weight="700" fill="#1F2933">Fidel <tspan fill="#1B5E3F">Hub</tspan></text>
+</svg>
