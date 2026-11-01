@@ -21,7 +21,7 @@ Build Fidel Hub, a modern, secure, scalable School Management SaaS platform that
 
 The platform will replace fragmented manual processes with centralized, structured and accessible digital workflows.
 
-It will support independent school branches, Ethiopian and Gregorian calendars, and offline attendance operations.
+It will support independent school branches, Ethiopian and Gregorian calendars, and offline CBT examination operations.
 
 1.2 Product Mission
 
@@ -98,7 +98,7 @@ Each branch maintains its own operational and financial records.
 7. Manage examinations and academic results.
 8. Manage school fees, invoices and payments.
 9. Provide reliable reports and dashboards.
-10. Support offline attendance operations.
+10. Support offline Computer-Based Testing (CBT) and examination operations.
 11. Enforce strict tenant and branch data isolation.
 
 3.2 Success Criteria
@@ -110,7 +110,7 @@ The product will be considered successful when:
 - Admission and enrollment workflows operate correctly.
 - Academic structures can be configured for different schools.
 - Teachers can access their assigned academic responsibilities.
-- Attendance can be recorded online and offline.
+- CBT assessments and examinations can be conducted and taken online and offline.
 - Examination results can be recorded and published through authorized workflows.
 - Schools can configure fees and collect payments.
 - Financial balances remain accurate.
@@ -543,7 +543,7 @@ Functional requirements:
 5. Records are validated and stored.
 6. Attendance reports are updated.
 
-When offline, attendance is stored locally and synchronized after connectivity returns.
+When offline, CBT exam sessions are stored locally and synchronized after connectivity returns.
 
 6.6 Examination
 
@@ -711,7 +711,7 @@ P1 — Core School Operations
 
 P2 — Academic and Financial Operations
 
-- Offline attendance.
+- Offline CBT and examinations.
 - Examination management.
 - Results management.
 - Fee management.
@@ -759,7 +759,7 @@ Attendance
 
 - Authorized users can record attendance.
 - Attendance is linked to valid enrollment.
-- Offline attendance can be synchronized.
+- Offline CBT examination sessions can be synchronized.
 - Replayed synchronization operations do not create duplicates.
 
 Examinations

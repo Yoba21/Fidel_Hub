@@ -1,9 +1,9 @@
-# Fidel Hub (ፊ)
+﻿# Fidel Hub (ፊ)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Stack: .NET + Postgres + React + React Native](https://img.shields.io/badge/Stack-.NET%20%7C%20Postgres%20%7C%20React%20%7C%20Expo-1B5E3F.svg)](#)
 
-> **Fidel Hub** is an enterprise multi-tenant School Management SaaS platform designed around a **domain-driven modular monolith** architecture, PostgreSQL Row-Level Security (RLS) data isolation, append-only double-entry financial ledger integrity, and offline-first mobile synchronization.
+> **Fidel Hub** is an enterprise multi-tenant School Management SaaS platform designed around a **domain-driven modular monolith** architecture, PostgreSQL Row-Level Security (RLS) data isolation, student fee and invoice payment integrity, and offline-first mobile synchronization.
 
 ---
 

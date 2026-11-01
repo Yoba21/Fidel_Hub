@@ -28,7 +28,7 @@ The architecture must:
 3. Protect tenant and branch data from unauthorized access.
 4. Support future expansion without requiring a complete architectural redesign.
 5. Keep the application maintainable through clear module boundaries.
-6. Support web, mobile, and offline attendance workflows.
+6. Support web, mobile, and offline CBT examination workflows.
 7. Maintain financial and academic data integrity.
 8. Support Ethiopian and Gregorian calendar requirements.
 9. Provide reliable APIs for web and mobile applications.
@@ -45,7 +45,7 @@ The architecture must:
 - Financial transactions must be consistent and auditable.
 - APIs must be versioned and documented.
 - Security must be enforced by default.
-- Offline functionality is limited to attendance in the initial release.
+- Offline functionality is focused on CBT assessments and examinations in the initial release.
 
 2. Technology Stack
 
@@ -364,10 +364,11 @@ Responsible for:
 
 The attendance module owns the attendance rules and state transitions.
 
-5.10 Examination
+5.10 Examination & Offline CBT
 
 Responsible for:
 
+- Offline Computer-Based Testing (CBT) package distribution and offline exam taking.
 - Examination configuration.
 - Assessment structure.
 - Marks entry.
