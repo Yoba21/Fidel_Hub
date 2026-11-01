@@ -5,7 +5,7 @@
 | Document Information | Details |
 | :--- | :--- |
 | **Document ID** | SRS-001 |
-| **Version** | 1.0 (Baseline Aligned with PRD, TAD, and Feature Blueprint) |
+| **Version** | 1.1 (Refined & Expanded with Complete Operational Modules) |
 | **Product** | Fidel Hub (ፊ) |
 | **Market Focus** | K–12 Multi-Tenant Institutions (Ethiopia & East Africa) |
 | **Technical Stack** | ASP.NET Core Modular Monolith, PostgreSQL (RLS), Better Auth, React (Vite), React Native (Expo) |
@@ -18,7 +18,7 @@
 ### 1.1 Purpose
 This Software Requirements Specification (SRS) establishes the complete functional and non-functional requirements for **Fidel Hub**, an enterprise-grade multi-tenant School Management SaaS platform. 
 
-The feature specifications in this document are derived from modern school management workflows—incorporating comprehensive classroom, academic, student lifecycle, and advanced Computer-Based Testing (CBT) engines—and architected specifically to run on Fidel Hub's high-integrity stack: **ASP.NET Core Modular Monolith**, **PostgreSQL with kernel-level Row-Level Security (RLS)**, **Better Auth** authentication service, **React (Vite)** for web administration, and **React Native (Expo)** with offline **SQLite WAL** synchronization for resilient Computer-Based Testing (CBT).
+The feature specifications in this document incorporate end-to-end institutional workflows—including Student Information Systems (SIS), dual Ethiopian/Gregorian calendars, classroom scheduling, continuous assessment, offline-first Computer-Based Testing (CBT), student fee billing, library circulation, laboratory equipment management, student clinic dispensary, and teacher access auditing. All capabilities are architected to run on Fidel Hub's high-integrity stack: **ASP.NET Core Modular Monolith**, **PostgreSQL with kernel-level Row-Level Security (RLS)**, **Better Auth** authentication service, **React (Vite)** for web administration, and **React Native (Expo)** with offline **SQLite WAL** synchronization for resilient Computer-Based Testing (CBT).
 
 ### 1.2 Core Product Scope & Non-Goals
 
@@ -28,11 +28,17 @@ The feature specifications in this document are derived from modern school manag
 | Dual academic calendar (Ethiopian EC & Gregorian GC) | Payroll processing & tax disbursements |
 | Student Information System (SIS), Admissions & Guardians | Full enterprise HR & recruitment management |
 | Academic Curriculum, Timetables, Lesson Plans & Behavioral Traits | Offline financial payment processing |
-| Daily homeroom and period-by-period attendance | Uncontrolled cross-tenant student transfers |
-| Advanced Question Bank & Examination Management | Direct client database connections bypassing RLS |
-| **Offline-First CBT & Local Exam Venue Synchronization** | In-place modification of posted fee invoices |
+| Early Childhood & Nursery/KG Developmental Tracking | Uncontrolled cross-tenant student transfers |
+| Daily homeroom and period-by-period attendance | Direct client database connections bypassing RLS |
+| Advanced Question Bank & Examination Management | In-place modification of posted fee invoices |
+| **Offline-First CBT & Local Exam Venue Synchronization** | Generic unvalidated multi-tenant table writes |
 | Student Fee Structures, Invoices, Payment Receipts & Balances | |
 | Automated Term Gradebooks & Dual-Script PDF Report Cards | |
+| Physical & Digital Library Resource Circulation & Overdue Fines | |
+| Science & ICT Laboratory Asset, Session & Safety Management | |
+| Student Health Profiles, Daily Clinic Dispensary & Parent Alerts | |
+| Staff/Teacher Mark Modification & Access Audit Trail | |
+| SaaS Platform SuperAdmin Tenant CRM & Subscription Quotas | |
 | Communication (SMS & Push Alerts) and MOE Standard Reporting | |
 
 ---
@@ -68,6 +74,11 @@ graph TD
         FeeMod["08. Fee & Invoicing"]
         CommsMod["09. Communication & Alerts"]
         RepMod["10. Reporting & Transcripts"]
+        LibMod["11. Library & Media Resources"]
+        FacMod["12. Laboratory & Facilities"]
+        HltMod["13. Student Health & Clinic"]
+        AudMod["14. Teacher & Grade Audit"]
+        PlatMod["15. Platform CRM & Subscription Quotas"]
     end
 
     subgraph Data Tier
@@ -83,9 +94,9 @@ graph TD
     Web -->|"Bearer JWT Authorization"| ApiHost
     Mobile -->|"Bearer JWT Authorization"| ApiHost
     ApiHost --> Middleware
-    Middleware --> OrgMod & IdMod & SisMod & AcadMod & AttMod & CbtMod & GradeMod & FeeMod & CommsMod & RepMod
+    Middleware --> OrgMod & IdMod & SisMod & AcadMod & AttMod & CbtMod & GradeMod & FeeMod & CommsMod & RepMod & LibMod & FacMod & HltMod & AudMod & PlatMod
 
-    OrgMod & IdMod & SisMod & AcadMod & AttMod & CbtMod & GradeMod & FeeMod & CommsMod & RepMod -.-> PG
+    OrgMod & IdMod & SisMod & AcadMod & AttMod & CbtMod & GradeMod & FeeMod & CommsMod & RepMod & LibMod & FacMod & HltMod & AudMod & PlatMod -.-> PG
     ApiHost -.-> Redis
 
     CbtMod -->|"Pre-fetch Encrypted Exam Bundle"| LocalVenueServer
@@ -119,10 +130,15 @@ The platform enforces a strict multi-tier role hierarchy powered by Better Auth 
 | 4. HOD /      |     | 5. Cashier /  |     | 6. Registrar  |
 |    Teacher    |     |    Finance    |     |    Officer    |
 +---------------+     +---------------+     +---------------+
+        |                     |                     |
++---------------+     +---------------+     +---------------+
+| 7. Exam       |     | 8. Librarian  |     | 9. Lab /      |
+|    Coordinator|     |               |     |    Nurse      |
++---------------+     +---------------+     +---------------+
         |                     |
 +---------------+     +---------------+
-| 7. Parent /   |     | 8. Student    |
-|    Guardian   |     |    (CBT User) |
+| 10. Parent /  |     | 11. Student   |
+|     Guardian  |     |     (CBT User)|
 +---------------+     +---------------+
 ```
 
@@ -183,6 +199,8 @@ The platform enforces a strict multi-tier role hierarchy powered by Better Auth 
 - **FR-ACAD-006 [Affective & Psychomotor Traits Assessment]**:
   - Evaluation of non-academic student development: punctuality, neatness, teamwork, leadership, empathy, and initiative.
   - Customizable 5-point rating scales (`Excellent`, `Good`, `Satisfactory`, `Needs Improvement`).
+- **FR-ACAD-007 [Early Childhood & Nursery/KG Activity Logging]**:
+  - Daily developmental tracking for kindergarten and nursery levels: nutrition/meal intake, nap duration, hygiene/potty logs, social-emotional milestones, and teacher summary for parents.
 
 ---
 
@@ -207,7 +225,7 @@ The platform enforces a strict multi-tier role hierarchy powered by Better Auth 
 
 #### 6.2 Exam Paper Creation & Scheduling
 - **FR-EXM-001 [Exam Paper Assembly]**:
-  - Dynamic paper generation by pulling randomized questions from the Question Bank based on blueprint criteria (e.g., "Select 20 Easy, 20 Medium, 10 Hard questions from Grade 10 Physics Mechanics").
+  - Dynamic paper generation by pulling randomized questions from the Question Bank based on blueprint criteria.
   - Fixed-question manual paper composition.
 - **FR-EXM-002 [Assessment Rules & Security]**:
   - Configurable duration timers (e.g., 60 minutes).
@@ -283,6 +301,7 @@ The platform enforces a strict multi-tier role hierarchy powered by Better Auth 
 - **FR-COM-002 [Automated Event Triggers]**:
   - Absence notification sent to guardians within 15 minutes of homeroom attendance submission.
   - Fee payment receipt SMS dispatched immediately upon confirmed payment.
+  - Clinic dispensary visit alert dispatched upon nurse triage.
   - Term report card publication notification.
 - **FR-COM-003 [School Broadcast Announcements]**: Target messages by Branch, Grade Level, Section, or Staff Group with delivery status tracking.
 
@@ -292,6 +311,77 @@ The platform enforces a strict multi-tier role hierarchy powered by Better Auth 
 - **FR-REP-001 [Executive & Branch Dashboards]**: Real-time administrative metrics: active student enrollment counts, attendance rates, fee collection percentages, and assessment performance.
 - **FR-REP-002 [Official Academic Transcripts]**: Multi-year consolidated student transcripts with historical grades, course credits, and graduation certification.
 - **FR-REP-003 [Ministry of Education Compliance Exports]**: Standardized CSV and PDF data exports matching Ethiopian regional and federal educational bureau formats.
+
+---
+
+### Module 11: Library & Media Resource Management
+*(Derived from Gila-Schoolmate `library.tsx`)*
+
+- **FR-LIB-001 [Physical & Digital Cataloging]**:
+  - Comprehensive catalog tracking book title, author, ISBN, Dewey/custom classification, publisher, publication year, total copies, available copies, and rack/shelf locator.
+  - Digital resource catalog for downloadable PDF textbooks, national curriculum syllabi, and curated instructional video links.
+- **FR-LIB-002 [Circulation, Checkout & Return]**:
+  - Issue books to students or academic staff with due date policies (e.g., 14-day student checkout).
+  - Return condition grading: `Good`, `Damaged`, `Lost`.
+- **FR-LIB-003 [Overdue Fine Accrual & Fee Integration]**:
+  - Automated calculation of overdue fines based on branch-configured daily rates (e.g., 5 ETB/day).
+  - Unpaid fines integrate into the student fee statement; students with outstanding fines are flagged during term clearance and report card release.
+- **FR-LIB-004 [Barcode / QR Rapid Circulation]**: Support handheld barcode/QR scanning of student identity cards and book accession codes for rapid loan desk processing.
+
+---
+
+### Module 12: Laboratory & Specialized ICT Facility Management
+*(Derived from Gila-Schoolmate `lab.tsx`)*
+
+- **FR-LAB-001 [Lab Asset & Consumable Registry]**:
+  - Registry of physical laboratory apparatus across Science disciplines (Chemistry, Physics, Biology) and Computer/ICT labs.
+  - Equipment condition tracking: `Functional`, `Damaged`, `Under Maintenance`, `Decommissioned`.
+  - Reagent and chemical tracking: unit volume, current stock, minimum reorder thresholds, and expiration dates.
+- **FR-LAB-002 [Lab Room Reservation & Conflict Prevention]**:
+  - Teachers schedule lab sessions linked to class timetable periods.
+  - Automatic collision prevention ensuring no two teachers or sections reserve the same laboratory room concurrently.
+- **FR-LAB-003 [Safety Equipment & Incident Logging]**:
+  - Mandatory safety checklist verification before lab entry (goggles, lab coats, ventilation).
+  - Incident log for equipment breakage or chemical spills with student liability tracking.
+
+---
+
+### Module 13: Student Health, Dispensary Clinic & Emergency Care
+*(Derived from Gila-Schoolmate `health.tsx`)*
+
+- **FR-HLT-001 [Student Health & Emergency Profiles]**:
+  - Health profile capturing blood group, verified allergies (food, penicillin, environmental), chronic medical conditions (asthma, epilepsy, sickle cell, diabetes), and emergency doctor/hospital preference.
+- **FR-HLT-002 [Daily Dispensary Visit Logging]**:
+  - Record student clinic visits: admission timestamp, presenting symptoms, temperature/vitals, initial triage severity (`Mild`, `Moderate`, `Severe`), and administered first aid/medications.
+- **FR-HLT-003 [Rest Bed Tracking & Incident Escalation]**:
+  - Track rest bed occupancy and duration within the school clinic.
+  - Immediate automated SMS escalation to primary guardian when a student is triaged with moderate or severe symptoms or admitted to rest bed.
+
+---
+
+### Module 14: Staff/Teacher Grade Modification & Security Audit Trail
+*(Derived from Gila-Schoolmate `teacher-access-audit.tsx`)*
+
+- **FR-AUD-001 [Fine-Grained Grade Modification Auditing]**:
+  - High-integrity audit log recording every single view, entry, edit, or export of student assessment marks.
+  - Captures: `staff_user_id`, `student_id`, `subject_id`, `old_score`, `new_score`, `reason_code`, IP address, and server UTC timestamp.
+- **FR-AUD-002 [Gradebook Lock Deadlines & Out-of-Window Alerts]**:
+  - Institutional term lock dates prevent any standard teacher modifications after grade submission cut-offs.
+  - Any administrative unlock or post-deadline score adjustment triggers high-priority alerts to the School Principal.
+
+---
+
+### Module 15: Platform SuperAdmin Management & Subscription Quotas
+*(Derived from Gila-Schoolmate `platform-admin.tsx` and subscription schema)*
+
+- **FR-PLT-001 [School Tenant Lifecycle & Pipeline CRM]**:
+  - Track prospective and active tenant onboarding stages: `Lead` → `Trial` → `Active` → `Grace Period` → `Suspended` → `Closed`.
+  - SuperAdmin control panel for tenant provisioning, domain routing, and platform analytics.
+- **FR-PLT-002 [Tiered Subscription Plans & Quota Enforcement]**:
+  - Subscription tiers (`Starter`, `Standard`, `Enterprise`) defining hard resource limits: maximum active enrolled students, maximum branches/campuses, and document storage quotas.
+  - System middleware automatically enforces student enrollment ceilings; admissions beyond plan capacity are gracefully blocked until the school upgrades its subscription.
+- **FR-PLT-003 [Tenant Snapshot & Data Portability Export]**:
+  - One-click encrypted snapshot generation enabling school administrators to export full tenant SQL and media archives for compliance and data sovereignty.
 
 ---
 
@@ -323,5 +413,11 @@ The platform enforces a strict multi-tier role hierarchy powered by Better Auth 
 | `academics.tsx` & `classes.tsx` | §5.4 & §5.5 Academic Setup | Dual Calendar (EC/GC), sections, timetables, and lesson plans |
 | `traits-report.tsx` | §5.11 Holistic Evaluation | Affective and psychomotor behavioral traits scoring |
 | `students.tsx` & `parents.tsx` | §5.2 & §5.3 SIS & Guardians | Multi-branch student lifecycle with guardian relationship flags |
+| `library.tsx` | Enhanced Operational Capability | Physical cataloging, digital e-books, lending, and overdue fine engine |
+| `lab.tsx` | Enhanced Operational Capability | Laboratory apparatus registry, chemical stocks, and room reservation |
+| `health.tsx` | Enhanced Student Care | Medical profiles, clinic dispensary visits, and instant guardian SMS alerts |
+| `teacher-access-audit.tsx` | High-Integrity Security | Tamper-proof grade modification audit logs and deadline locks |
+| `add_nursery_activity_columns.sql`| Early Childhood Tracking | Nursery & Kindergarten daily feeding, napping, and milestone logging |
+| `platform-admin.tsx` / `phase7_subscription_billing.sql` | Multi-Tenant Platform Operations | Tenant lifecycle CRM, student count quota enforcement & backup exports |
 | Supabase Auth / Roles | §5.1 & §5.7 Identity & RBAC | Dedicated **Better Auth** service + ASP.NET Core `JwtBearer` validation |
 | Supabase RLS | §4 & §5 Multi-Tenancy | Native PostgreSQL RLS with connection session interceptors |

@@ -5,9 +5,9 @@
 | Document Information | Details |
 | :--- | :--- |
 | **Document ID** | BWF-001 |
-| **Version** | 1.0 |
+| **Version** | 1.1 (Comprehensive Institutional Lifecycle Workflows) |
 | **Status** | Approved Baseline |
-| **Scope** | End-to-End Operational Lifecycle Across All 10 Modules |
+| **Scope** | End-to-End Operational Lifecycle Across All 15 Modules |
 
 ---
 
@@ -159,11 +159,11 @@ graph TD
     A[Configure Term CA Components: 15% Quizzes + 35% Midterm + 50% Exam] --> B[Teachers Enter Class Scores in Spreadsheet Gradebook]
     B --> C[CBT Exam Objective Scores Auto-Populated from Assessment Engine]
     C --> D[Teachers Evaluate Subjective Theory Questions using Rubrics]
-    D --> E[Affective & Psychomotor Behavioral Traits Scored (1-5 Scale)]
+    D --> E[Affective & Psychomotor Behavioral Traits Scored 1-5 Scale]
     E --> F[System Aggregates Total Weighted Marks, GPA & Percentiles]
     F --> G[Automatic Computation of Class Rank & Branch Promotion Recommendations]
     G --> H[Principal & Head of Department Review and Lock Gradebook]
-    H --> I[Batch PDF Generation: Dual-Script (English + Ge'ez ፊ) with Verification QR]
+    H --> I[Batch PDF Generation: Dual-Script English + Ge'ez ፊ with Verification QR]
     I --> J[Publish to Parent Portal & Send Completion Notification SMS]
 ```
 
@@ -215,3 +215,150 @@ sequenceDiagram
 1. **Posted Invoice Immutability**: Under no circumstances can a `POSTED` invoice be edited in place. Any reduction must occur via an authorized credit waiver record.
 2. **Idempotency Protection**: Flaky internet retry submissions presenting the same `Idempotency-Key` return the existing receipt record without creating duplicate ledger credits.
 3. **Branch Financial Boundary**: All fee structures, invoices, and payments belong strictly to authorized branches.
+
+---
+
+## 7. Library Book Lending, Circulation & Overdue Fine Settlement
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Student as Student / Borrower
+    actor Lib as Librarian
+    participant Web as Library Desk UI
+    participant API as Library Module
+    participant DB as PostgreSQL (RLS)
+    participant Fee as Fee Module
+
+    Student->>Lib: Present Book & Student ID Card
+    Lib->>Web: Scan Student ID Barcode & Book Barcode
+    Web->>API: POST /api/v1/library/loans/checkout<br/>(student_id, book_id, due_days: 14)
+    API->>DB: Check student active loan limit & book available_copies > 0
+    API->>DB: Decrement book available_copies, Insert book_loan (due_date)
+    DB-->>API: Loan Confirmed
+    API-->>Web: Loan Created. Due Date: 15 Nov 2026
+
+    Note over Student,Lib: Return Workflow & Fine Check
+    Student->>Lib: Return Book on 20 Nov 2026 (5 Days Overdue)
+    Lib->>Web: Scan Book Return
+    Web->>API: POST /api/v1/library/loans/{id}/return (condition: 'GOOD')
+    API->>API: Calculate Overdue Days (5 days * ETB 5/day = ETB 25.00)
+    API->>DB: Mark book_loan 'RETURNED', Increment available_copies
+    API->>Fee: Post Library Fine to Student Balance Statement (ETB 25.00)
+    Fee->>DB: Insert fee_statement_line (Type: 'LIBRARY_FINE')
+    API-->>Web: Return Processed. Overdue Fine: ETB 25.00 appended to fee account.
+```
+
+---
+
+## 8. Laboratory & Specialized Facility Reservation & Safety Management
+
+```mermaid
+graph TD
+    A[Teacher Submits Lab Session Booking Request] --> B{Collision Engine Check}
+    B -->|Time/Room Conflict| C[Reject Booking & Show Alternate Period Slots]
+    B -->|Zero Conflicts| D[Lab Technician Reviews Apparatus & Reagent Availability]
+    D --> E[Approve Booking & Reserve Chemical Safety Gear]
+    E --> F[Class Enters Lab: Mandatory Safety Checklist Verified]
+    F --> G[Practical Session Conducted]
+    G --> H[Session Wrap-Up & Inspection]
+    H --> I{Equipment Damage or Breakage?}
+    I -->|Yes| J[Log Incident Report & Assess Breakage Replacement Fee]
+    I -->|No| K[Restock Clean Equipment & Complete Session Log]
+```
+
+---
+
+## 9. Student Clinic Visit, Triage & Guardian Emergency Escalation
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Student as Sick / Injured Student
+    actor Nurse as School Health Officer / Nurse
+    participant Web as Clinic Web Portal
+    participant API as Health Module
+    participant DB as PostgreSQL (RLS)
+    participant Comms as Notification Service
+    actor Parent as Student Guardian
+
+    Student->>Nurse: Report to School Clinic / Dispensary
+    Nurse->>Web: Open Student Medical Profile (Check Blood Group, Allergies, Asthma)
+    Nurse->>Web: Log Vitals: Temp 39.1°C, Symptoms: Acute Fever & Vomiting
+    Nurse->>Web: Set Triage Severity: 'SEVERE' & Assign Rest Bed #2
+    Web->>API: POST /api/v1/health/clinic-visits (escalate_urgent: true)
+    API->>DB: Insert health_clinic_visit & medical notes
+    API->>Comms: Dispatch High-Priority Emergency Event
+    DB-->>API: Committed
+    API-->>Web: Visit Recorded & Escalation Dispatched
+    
+    Comms->>Parent: Send Urgent SMS: "[URGENT - Fidel Hub Clinic] Your child Dawit Bekele has reported to the clinic with high fever (39.1°C). Please call 0911-XXXXXX or proceed to school."
+```
+
+---
+
+## 10. Staff/Teacher Grade Modification & Audit Trail
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Teacher as Classroom Teacher
+    participant Web as Gradebook Marksheet UI
+    participant API as Grading Module
+    participant Audit as Teacher Audit Engine
+    participant DB as PostgreSQL (RLS)
+    actor Principal as School Principal
+
+    Teacher->>Web: Change Student Mark from 78 to 86 in Grade 10 Physics
+    Web->>API: PUT /api/v1/grades/marksheet/entry<br/>(student_id, subject_id, old_score: 78, new_score: 86, reason: 'Calculation Correction')
+    
+    API->>DB: Check Term Gradebook Lock Status
+    alt Gradebook Already Locked (Post-Deadline)
+        API-->>Web: 403 Forbidden ("Gradebook locked by Principal on 28 Oct 2026. Modification requires Administrative Override.")
+        Teacher->>Principal: Request Post-Deadline Score Amendment
+        Principal->>API: POST /api/v1/grades/override-unlock (with authorization token)
+    end
+
+    API->>DB: Update student assessment score
+    API->>Audit: Record Audit Log (staff_user_id, student_id, old_score: 78, new_score: 86, reason, IP, timestamp)
+    Audit->>DB: INSERT INTO audit.teacher_access_logs (...)
+    DB-->>API: Transaction Committed
+    API-->>Web: Grade Updated & Audit Trail Permanently Recorded
+```
+
+---
+
+## 11. SaaS Platform SuperAdmin Tenant Onboarding & Quota Lifecycle
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Super as Platform SuperAdmin
+    participant UI as SuperAdmin Control Panel
+    participant API as Platform Management API
+    participant DB as PostgreSQL (RLS)
+    actor SchoolAdmin as School Tenant Administrator
+
+    Super->>UI: Register New School Tenant: "Fidel Hub Academy" (Tier: 'STANDARD', Student Cap: 1,500)
+    UI->>API: POST /api/v1/platform/tenants
+    API->>DB: INSERT INTO platform.tenants (code: 'fha', name: 'Fidel Hub Academy', status: 'TRIAL')
+    API->>DB: INSERT INTO platform.tenant_quotas (max_students: 1500, max_branches: 3)
+    API->>DB: Provision Default Main Branch & School Calendar
+    API-->>UI: Tenant Provisioned Successfully
+    
+    Note over SchoolAdmin,API: Quota Enforcement Invariant
+    SchoolAdmin->>API: Bulk Admit 200 Students (Current Active: 1,450)
+    API->>DB: Count current active students + 200
+    alt Count exceeds 1,500 quota
+        API-->>SchoolAdmin: 402 Payment Required ("Enrollment limit of 1,500 reached for Standard Plan. Please upgrade to Enterprise Tier.")
+    else Count within quota
+        API->>DB: Commit Student Admissions
+        API-->>SchoolAdmin: Admissions Completed
+    end
+
+    Note over Super,DB: Tenant Backup & Sovereignty Export
+    Super->>API: POST /api/v1/platform/tenants/{id}/backup-export
+    API->>DB: Execute tenant-isolated pg_dump (RLS filtered by tenant_id)
+    API->>API: Encrypt archive with AES-256 and store in secure storage
+    API-->>Super: Signed Download Link (Valid for 2 hours)
+```

@@ -5,7 +5,7 @@
 | Document Information | Details |
 | :--- | :--- |
 | **Document ID** | URP-001 |
-| **Version** | 1.0 |
+| **Version** | 1.1 (Expanded Multi-Role Institutional Matrix) |
 | **Status** | Approved Baseline |
 | **Authentication Engine** | Better Auth (Node.js/PostgreSQL) with Organizations & JWT Plugins |
 | **Authorization Engine** | ASP.NET Core Policy-Based Authorization & PostgreSQL Kernel RLS |
@@ -45,16 +45,19 @@ Fidel Hub employs a **hybrid Role-Based and Permission-Based Access Control (RBA
 
 | Role Code | Role Title | Ownership Scope | Primary Responsibilities |
 | :--- | :--- | :--- | :--- |
-| `PLATFORM_SUPERADMIN` | Platform Super Administrator | Global Platform | SaaS organization provisioning, system telemetry, subscription quotas. |
-| `TENANT_PRINCIPAL` | School Principal / Director | Tenant-Wide | Organization policy, cross-branch analytics, academic lock approval. |
-| `BRANCH_ADMIN` | Branch Campus Administrator | Branch-Scoped | Daily campus operations, staff room allocations, local policy enforcement. |
-| `HEAD_OF_DEPARTMENT` | Head of Department (HOD) | Branch & Dept | Curriculum review, lesson plan approval, Question Bank quality assurance. |
-| `TEACHER` | Classroom Teacher / Instructor | Branch & Class | Daily attendance, assignment scoring, Continuous Assessment (CA) entry. |
-| `EXAM_COORDINATOR` | Examination & CBT Coordinator| Branch-Scoped | Question bank management, exam paper assembly, CBT venue server unlocking. |
-| `CASHIER` | School Cashier / Finance Officer | Branch-Scoped | Fee structure setups, invoice generation, payment receipting, bank slips. |
-| `REGISTRAR` | Registrar & Admissions Officer | Branch-Scoped | Student registration, guardian mapping, health notes, branch transfers. |
-| `PARENT` | Parent / Guardian | Household | View child attendance, grades, report cards, fee statements, make payments. |
-| `STUDENT` | Enrolled Student / Candidate | Personal Scope | View schedules, homework, take CBT assessments, view academic results. |
+| `PLATFORM_SUPERADMIN` | Platform Super Administrator | Global Platform | SaaS organization provisioning, system telemetry, subscription quotas, tenant backup exports. |
+| `TENANT_PRINCIPAL` | School Principal / Director | Tenant-Wide | Organization policy, cross-branch analytics, academic lock approval, post-deadline grade adjustments. |
+| `BRANCH_ADMIN` | Branch Campus Administrator | Branch-Scoped | Daily campus operations, staff room allocations, local policy enforcement, emergency response. |
+| `HEAD_OF_DEPARTMENT` | Head of Department (HOD) | Branch & Dept | Curriculum review, lesson plan approval, Question Bank quality assurance, subject teacher oversight. |
+| `TEACHER` | Classroom Teacher / Instructor | Branch & Class | Daily attendance, assignment scoring, Continuous Assessment (CA) entry, lesson plan authoring. |
+| `EXAM_COORDINATOR` | Examination & CBT Coordinator| Branch-Scoped | Question bank management, exam paper assembly, CBT venue server unlocking, psychometrics. |
+| `CASHIER` | School Cashier / Finance Officer | Branch-Scoped | Fee structure setups, invoice generation, payment receipting, bank slips (*no GL accounting*). |
+| `REGISTRAR` | Registrar & Admissions Officer | Branch-Scoped | Student registration, guardian mapping, health notes, branch transfers, student files. |
+| `LIBRARIAN` | School Librarian / Media Specialist | Branch-Scoped | Book cataloging, circulation desk checkout/returns, overdue fine assessments, digital media assets. |
+| `LAB_TECHNICIAN` | Laboratory & ICT Facility Tech | Branch-Scoped | Apparatus registry, chemical reagents inventory, safety checklist, lab room booking schedule. |
+| `SCHOOL_NURSE` | School Health Officer / Nurse | Branch-Scoped | Student medical profiles, daily clinic dispensary visits, vital signs, rest-bed tracking, parent SMS. |
+| `PARENT` | Parent / Guardian | Household | View child attendance, grades, report cards, fee statements, make payments, receive clinic alerts. |
+| `STUDENT` | Enrolled Student / Candidate | Personal Scope | View schedules, homework, take CBT assessments, view academic results, access digital library. |
 
 ---
 
@@ -75,7 +78,6 @@ Fidel Hub employs a **hybrid Role-Based and Permission-Based Access Control (RBA
 - `sis.student.archive`: Archive, graduate, or withdraw student records.
 - `sis.guardian.manage`: Map guardians, emergency contacts, and billing recipients.
 - `sis.admission.review`: Process admission applications, review documents, approve/reject.
-- `sis.health.manage`: Record clinic visits, medical allergies, and emergency health protocols.
 
 ### 3.3 Academics, Curriculum & Timetables (`acad:*`)
 - `acad.class.manage`: Setup grade levels, class sections, and classroom seat capacities.
@@ -85,6 +87,7 @@ Fidel Hub employs a **hybrid Role-Based and Permission-Based Access Control (RBA
 - `acad.lessons.submit`: Author and submit weekly lesson plans for HOD review.
 - `acad.lessons.approve`: Review, comment, and officially approve teacher lesson plans.
 - `acad.traits.evaluate`: Enter affective and psychomotor behavioral trait ratings.
+- `acad.nursery.log`: Record daily feeding, nap, and milestone activities for Kindergarten/Nursery.
 
 ### 3.4 Attendance (`att:*`)
 - `att.session.take`: Record daily morning homeroom and period-by-period attendance.
@@ -121,55 +124,106 @@ Fidel Hub employs a **hybrid Role-Based and Permission-Based Access Control (RBA
 - `comms.broadcast.send`: Dispatch school-wide or branch-wide SMS and email announcements.
 - `comms.alerts.manage`: Configure automated trigger rules (instant unexcused absence SMS).
 
+### 3.9 Library & Digital Media Management (`lib:*`)
+- `lib.catalog.manage`: Add, catalog, and update physical books and digital learning documents.
+- `lib.loan.checkout`: Issue book loans to students and staff with due dates.
+- `lib.loan.return`: Process book returns, inspect physical condition, and log damage/loss.
+- `lib.fine.assess`: Assess overdue fines directly into the student fee ledger.
+- `lib.fine.waive`: Waive or discount overdue library fines (Requires Branch Admin approval).
+
+### 3.10 Laboratory & Specialized Facilities (`lab:*`)
+- `lab.equipment.manage`: Register, inspect, and update science apparatus and ICT lab hardware.
+- `lab.reagents.track`: Manage chemical inventories, safety limits, and expiration dates.
+- `lab.session.book`: Reserve laboratory rooms and equipment without schedule collision.
+- `lab.incident.log`: Record equipment breakage, safety violations, or chemical accidents.
+
+### 3.11 Student Health & Clinic Dispensary (`health:*`)
+- `health.profile.view`: View student health profile, chronic conditions, and emergency contacts.
+- `health.profile.edit`: Record allergies, medical warnings, and blood group.
+- `health.clinic.record`: Log dispensary visits, vitals, presenting symptoms, and treatments.
+- `health.clinic.escalate`: Authorize rest bed admission and trigger urgent SMS alerts to parents.
+
+### 3.12 Staff/Teacher Grade Access Audit (`audit:*`)
+- `audit.grade.view`: View comprehensive grade viewing, entry, edit, and export audit trails.
+- `audit.grade.override`: Authorize out-of-schedule grade modifications after term lock date.
+
+### 3.13 Platform SuperAdmin & Subscriptions (`platform:*`)
+- `platform.tenant.provision`: Onboard, activate, or suspend school tenant subscriptions.
+- `platform.quota.configure`: Set maximum student enrollment limits and branch allocations.
+- `platform.backup.export`: Generate and download encrypted tenant database archives.
+
 ---
 
 ## 4. Comprehensive Role-Permission Matrix
 
-| Permission Code | Super Admin | School Principal | Branch Admin | Head of Dept | Teacher | Exam Coord | Cashier | Registrar | Parent | Student |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Organization & Branches** | | | | | | | | | | |
-| `org.tenant.manage` | **Full** | View/Edit | None | None | None | None | None | None | None | None |
-| `org.branch.manage` | **Full** | **Full** | Assigned | None | None | None | None | None | None | None |
-| `org.calendar.manage` | **Full** | **Full** | Assigned | View | View | View | View | View | View | View |
-| **Student SIS & Admissions** | | | | | | | | | | |
-| `sis.student.view` | All | All Branches | Assigned | Assigned | Assigned | Assigned | Assigned | **Full** | Own Child | Self |
-| `sis.student.create` | Yes | Yes | Yes | No | No | No | No | **Full** | No | No |
-| `sis.student.transfer`| Yes | **Full** | Request | No | No | No | No | Execute | No | No |
-| `sis.admission.review`| Yes | **Full** | **Full** | No | No | No | No | **Full** | Apply | No |
-| `sis.health.manage` | Yes | View | Assigned | No | View | No | No | **Full** | View | Self |
-| **Academics & Curriculum** | | | | | | | | | | |
-| `acad.class.manage` | Yes | **Full** | **Full** | View | View | View | View | View | View | View |
-| `acad.subject.manage` | Yes | **Full** | **Full** | **Full** | View | View | No | View | View | View |
-| `acad.teacher.assign` | Yes | **Full** | **Full** | Suggest | No | No | No | No | No | No |
-| `acad.timetable.edit` | Yes | **Full** | **Full** | Dept View | View | View | No | No | View | View |
-| `acad.lessons.submit` | No | View | View | Review | **Full** | No | No | No | No | No |
-| `acad.lessons.approve`| No | **Full** | **Full** | **Full** | No | No | No | No | No | No |
-| `acad.traits.evaluate`| No | View | Assigned | Assigned | **Full** | No | No | No | View | View |
-| **Attendance Tracking** | | | | | | | | | | |
-| `att.session.take` | No | View | Assigned | Assigned | **Assigned**| No | No | No | No | No |
-| `att.session.correct` | Yes | **Full** | **Full** | Dept Only | Request | No | No | No | No | No |
-| `att.reports.view` | All | All Branches | Assigned | Assigned | Assigned | View | View | View | Own Child | Self |
-| **Question Bank & CBT Exams** | | | | | | | | | | |
-| `exam.question.create`| No | View | View | **Full** | **Full** | **Full** | No | No | No | No |
-| `exam.question.review`| No | View | View | **Full** | No | **Full** | No | No | No | No |
-| `exam.paper.create` | No | View | View | **Full** | Assist | **Full** | No | No | No | No |
-| `exam.cbt.package` | No | View | View | No | No | **Full** | No | No | No | Sit Only |
-| `exam.theory.grade` | No | View | View | **Full** | **Full** | Assist | No | No | No | No |
-| `exam.results.publish`| Yes | **Full** | **Full** | Review | No | Execute | No | No | View | View |
-| **Continuous Assessment & Gradebook** | | | | | | | | | | |
-| `grade.ca.configure` | Yes | **Full** | **Full** | **Full** | No | Assist | No | No | No | No |
-| `grade.marksheet.enter`| No | View | View | Assigned | **Assigned**| View | No | No | No | No |
-| `grade.marksheet.lock` | Yes | **Full** | **Full** | **Full** | No | No | No | No | No | No |
-| `grade.reports.generate`| Yes | **Full** | **Full** | Assigned | Assigned | Assigned | View | **Full** | Own Child | Self |
-| **Fee Management & Invoicing** | | | | | | | | | | |
-| `fee.structure.manage`| Yes | **Full** | **Full** | No | No | No | **Full** | No | No | No |
-| `fee.invoice.generate`| Yes | **Full** | **Full** | No | No | No | **Full** | No | No | No |
-| `fee.payment.record` | No | View | View | No | No | No | **Full** | No | Pay Online| View |
-| `fee.receipt.print` | No | View | View | No | No | No | **Full** | No | Download | View |
-| `fee.statement.view` | All | All Branches | Assigned | No | No | No | **Full** | Assigned | Own Child | Self |
-| **Communications & Alerts** | | | | | | | | | | |
-| `comms.broadcast.send`| Yes | **Full** | **Full** | Dept Only | Class Only| No | No | No | No | No |
-| `comms.alerts.manage` | Yes | **Full** | **Full** | No | No | No | No | No | No | No |
+| Permission Code | Super Admin | School Principal | Branch Admin | Head of Dept | Teacher | Exam Coord | Cashier | Registrar | Librarian | Lab Tech | Nurse | Parent | Student |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Organization & Branches** | | | | | | | | | | | | | |
+| `org.tenant.manage` | **Full** | View/Edit | None | None | None | None | None | None | None | None | None | None | None |
+| `org.branch.manage` | **Full** | **Full** | Assigned | None | None | None | None | None | None | None | None | None | None |
+| `org.calendar.manage` | **Full** | **Full** | Assigned | View | View | View | View | View | View | View | View | View | View |
+| **Student SIS & Admissions** | | | | | | | | | | | | | |
+| `sis.student.view` | All | All | Assigned | Assigned | Assigned | Assigned | Assigned | **Full** | Assigned | Assigned | Assigned | Own Child | Self |
+| `sis.student.create` | Yes | Yes | Yes | No | No | No | No | **Full** | No | No | No | No | No |
+| `sis.student.transfer`| Yes | **Full** | Request | No | No | No | No | Execute | No | No | No | No | No |
+| `sis.admission.review`| Yes | **Full** | **Full** | No | No | No | No | **Full** | No | No | No | Apply | No |
+| **Academics & Curriculum** | | | | | | | | | | | | | |
+| `acad.class.manage` | Yes | **Full** | **Full** | View | View | View | View | View | View | View | View | View | View |
+| `acad.subject.manage` | Yes | **Full** | **Full** | **Full** | View | View | No | View | View | View | View | View | View |
+| `acad.teacher.assign` | Yes | **Full** | **Full** | Suggest | No | No | No | No | No | No | No | No | No |
+| `acad.timetable.edit` | Yes | **Full** | **Full** | Dept View | View | View | No | No | View | View | View | View | View |
+| `acad.lessons.submit` | No | View | View | Review | **Full** | No | No | No | No | No | No | No | No |
+| `acad.lessons.approve`| No | **Full** | **Full** | **Full** | No | No | No | No | No | No | No | No | No |
+| `acad.traits.evaluate`| No | View | Assigned | Assigned | **Full** | No | No | No | No | No | No | View | View |
+| `acad.nursery.log` | No | View | Assigned | Assigned | **Full** | No | No | Assist | No | No | Assist | View Child| No |
+| **Attendance Tracking** | | | | | | | | | | | | | |
+| `att.session.take` | No | View | Assigned | Assigned | **Assigned**| No | No | No | No | No | No | No | No |
+| `att.session.correct` | Yes | **Full** | **Full** | Dept Only | Request | No | No | No | No | No | No | No | No |
+| `att.reports.view` | All | All | Assigned | Assigned | Assigned | View | View | View | View | View | View | Own Child | Self |
+| **Question Bank & CBT Exams** | | | | | | | | | | | | | |
+| `exam.question.create`| No | View | View | **Full** | **Full** | **Full** | No | No | No | No | No | No | No |
+| `exam.question.review`| No | View | View | **Full** | No | **Full** | No | No | No | No | No | No | No |
+| `exam.paper.create` | No | View | View | **Full** | Assist | **Full** | No | No | No | No | No | No | No |
+| `exam.cbt.package` | No | View | View | No | No | **Full** | No | No | No | No | No | No | Sit Only |
+| `exam.theory.grade` | No | View | View | **Full** | **Full** | Assist | No | No | No | No | No | No | No |
+| `exam.results.publish`| Yes | **Full** | **Full** | Review | No | Execute | No | No | No | No | No | View | View |
+| **Continuous Assessment & Gradebook** | | | | | | | | | | | | | |
+| `grade.ca.configure` | Yes | **Full** | **Full** | **Full** | No | Assist | No | No | No | No | No | No | No |
+| `grade.marksheet.enter`| No | View | View | Assigned | **Assigned**| View | No | No | No | No | No | No | No |
+| `grade.marksheet.lock` | Yes | **Full** | **Full** | **Full** | No | No | No | No | No | No | No | No | No |
+| `grade.reports.generate`| Yes | **Full** | **Full** | Assigned | Assigned | Assigned | View | **Full** | No | No | No | Own Child | Self |
+| **Fee Management & Invoicing** | | | | | | | | | | | | | |
+| `fee.structure.manage`| Yes | **Full** | **Full** | No | No | No | **Full** | No | No | No | No | No | No |
+| `fee.invoice.generate`| Yes | **Full** | **Full** | No | No | No | **Full** | No | No | No | No | No | No |
+| `fee.payment.record` | No | View | View | No | No | No | **Full** | No | No | No | No | Pay Online| View |
+| `fee.receipt.print` | No | View | View | No | No | No | **Full** | No | No | No | No | Download | View |
+| `fee.statement.view` | All | All | Assigned | No | No | No | **Full** | Assigned | View | No | No | Own Child | Self |
+| **Communications & Alerts** | | | | | | | | | | | | | |
+| `comms.broadcast.send`| Yes | **Full** | **Full** | Dept Only | Class Only| No | No | No | No | No | No | No | No |
+| `comms.alerts.manage` | Yes | **Full** | **Full** | No | No | No | No | No | No | No | No | No | No |
+| **Library & Media Management** | | | | | | | | | | | | | |
+| `lib.catalog.manage` | Yes | View | Assigned | Suggest | Suggest | No | No | No | **Full** | No | No | View | View |
+| `lib.loan.checkout` | No | View | Assigned | No | No | No | No | No | **Full** | No | No | No | Request |
+| `lib.loan.return` | No | View | Assigned | No | No | No | No | No | **Full** | No | No | No | No |
+| `lib.fine.assess` | No | View | Assigned | No | No | No | Assist | No | **Full** | No | No | View | View |
+| `lib.fine.waive` | Yes | **Full** | **Full** | No | No | No | Assist | No | Request | No | No | No | No |
+| **Laboratory & Facilities** | | | | | | | | | | | | | |
+| `lab.equipment.manage`| Yes | View | Assigned | Dept View | View | No | No | No | No | **Full** | No | No | No |
+| `lab.reagents.track` | Yes | View | Assigned | Dept View | View | No | No | No | No | **Full** | No | No | No |
+| `lab.session.book` | No | View | Assigned | Review | **Book** | No | No | No | No | **Confirm**| No | No | No |
+| `lab.incident.log` | Yes | **Full** | **Full** | Dept Only | Submit | No | No | No | No | **Full** | Assist | View Child| No |
+| **Student Health & Clinic** | | | | | | | | | | | | | |
+| `health.profile.view`| Yes | All | Assigned | No | Allergies | No | No | View | No | No | **Full** | Own Child | Self |
+| `health.profile.edit`| No | View | Assigned | No | No | No | No | Assist | No | No | **Full** | Submit | No |
+| `health.clinic.record`| No | View | Assigned | No | No | No | No | No | No | No | **Full** | View Child| View |
+| `health.clinic.escalate`| Yes| **Full**| **Full** | No | No | No | No | No | No | No | **Full** | Alerted | Alerted |
+| **Staff/Teacher Audit Trail** | | | | | | | | | | | | | |
+| `audit.grade.view` | Yes | **Full** | **Full** | Dept Only | Own Only | View | No | No | No | No | No | No | No |
+| `audit.grade.override`| No | **Full** | Request | No | No | No | No | No | No | No | No | No | No |
+| **Platform Administration** | | | | | | | | | | | | | |
+| `platform.tenant.manage`| **Full**| No | No | No | No | No | No | No | No | No | No | No | No |
+| `platform.quota.manage`| **Full**| View | No | No | No | No | No | No | No | No | No | No | No |
+| `platform.backup.export`| **Full**| **Full** | Request | No | No | No | No | No | No | No | No | No | No |
 
 ---
 
@@ -187,7 +241,8 @@ Fidel Hub employs a **hybrid Role-Based and Permission-Based Access Control (RBA
        "exam.question.create",
        "exam.cbt.package.export",
        "att.session.take",
-       "grade.marksheet.enter"
+       "grade.marksheet.enter",
+       "lib.loan.checkout"
      ]
    }
    ```
