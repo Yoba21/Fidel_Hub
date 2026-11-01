@@ -5,7 +5,8 @@
 | Document Information | Details |
 | :--- | :--- |
 | **Document** | Database Schema Specification |
-| **Version** | 1.0-DRAFT |
+| **Version** | 2.0-ALIGNED |
+| **Note** | Aligned with PRD: Fee & Invoice Tracking (No Full GL) & CBT Offline Exam Sync |
 
 ---
 
@@ -37,17 +38,50 @@
 **Primary Key**: `(tenant_id, id)`
 **Unique Constraint**: `(tenant_id, admission_number)`
 
-### 1.3 `journal_entries`
+### 1.3 `invoices`
 | Column | Type | Constraints | Description |
 | :--- | :--- | :--- | :--- |
 | `tenant_id` | `UUID` | NOT NULL, FK to `tenants(id)` | RLS tenant isolation key |
-| `id` | `UUID` | NOT NULL | Unique journal line ID |
-| `voucher_number` | `VARCHAR(100)` | NOT NULL | Document voucher ID |
-| `transaction_date`| `DATE` | NOT NULL | Transaction date |
-| `account_code` | `VARCHAR(50)` | NOT NULL | Chart of accounts code |
-| `debit_amount` | `NUMERIC(18,4)`| NOT NULL DEFAULT 0.0000 | Debit entry |
-| `credit_amount` | `NUMERIC(18,4)`| NOT NULL DEFAULT 0.0000 | Credit entry |
-| `memo` | `TEXT` | NULL | Description/notes |
-| `idempotency_key` | `UUID` | NOT NULL, UNIQUE | Client mutation token |
+| `id` | `UUID` | NOT NULL | Unique invoice ID |
+| `branch_id` | `UUID` | NOT NULL | School branch ID |
+| `student_id` | `UUID` | NOT NULL | Student ID |
+| `invoice_number` | `VARCHAR(50)` | NOT NULL | Unique per tenant invoice number |
+| `academic_term_id`| `UUID` | NOT NULL | Term reference |
+| `total_amount` | `NUMERIC(14,2)`| NOT NULL | Total billed amount |
+| `paid_amount` | `NUMERIC(14,2)`| NOT NULL DEFAULT 0.00 | Amount paid so far |
+| `status` | `VARCHAR(20)` | NOT NULL DEFAULT 'DRAFT' | DRAFT, POSTED, PARTIAL, PAID, CANCELLED |
+| `due_date` | `DATE` | NOT NULL | Invoice payment deadline |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL DEFAULT NOW() | Creation timestamp |
+
+**Primary Key**: `(tenant_id, id)`
+
+### 1.4 `payments`
+| Column | Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `tenant_id` | `UUID` | NOT NULL, FK to `tenants(id)` | RLS tenant isolation key |
+| `id` | `UUID` | NOT NULL | Unique payment record ID |
+| `branch_id` | `UUID` | NOT NULL | Branch ID |
+| `invoice_id` | `UUID` | NOT NULL | Target invoice |
+| `amount` | `NUMERIC(14,2)`| NOT NULL | Payment amount |
+| `payment_method` | `VARCHAR(30)` | NOT NULL | CASH, CBE_BIRR, TELEBIRR, BANK_SLIP |
+| `reference_number`| `VARCHAR(100)` | NULL | Bank / Gateway confirmation ref |
+| `idempotency_key` | `UUID` | NOT NULL, UNIQUE | Mutation token preventing duplicates |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL DEFAULT NOW() | Payment timestamp |
+
+**Primary Key**: `(tenant_id, id)`
+
+### 1.5 `cbt_exam_sessions` (Offline CBT Engine)
+| Column | Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `tenant_id` | `UUID` | NOT NULL, FK to `tenants(id)` | RLS tenant isolation key |
+| `id` | `UUID` | NOT NULL | Server session ID |
+| `exam_id` | `UUID` | NOT NULL | Exam identifier |
+| `student_id` | `UUID` | NOT NULL | Student ID |
+| `client_sync_id` | `UUID` | NOT NULL, UNIQUE | Client UUID generated offline |
+| `started_at` | `TIMESTAMPTZ` | NOT NULL | Exam start time |
+| `submitted_at` | `TIMESTAMPTZ` | NOT NULL | Exam completion time |
+| `answers_json` | `JSONB` | NOT NULL | Submitted answers payload |
+| `score` | `NUMERIC(6,2)` | NULL | Auto-graded result |
+| `sync_status` | `VARCHAR(20)` | NOT NULL DEFAULT 'SYNCED' | Sync status |
 
 **Primary Key**: `(tenant_id, id)`

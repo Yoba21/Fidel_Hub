@@ -33,9 +33,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
   const brandModuleNav = [
     {
       id: 'fees',
-      label: 'Fees & Ledger',
+      label: 'Fees & Invoicing',
       iconUrl: '/assets/icon-fees-payments.svg',
-      badge: 'Balanced',
     },
     {
       id: 'exams',

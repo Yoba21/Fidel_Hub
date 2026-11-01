@@ -74,7 +74,7 @@ export const Dashboard: React.FC = () => {
             />
           </Box>
           <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.85)' }}>
-            Domain-driven modular monolith with PostgreSQL Row-Level Security, double-entry ledger, and offline sync.
+            Domain-driven modular monolith with PostgreSQL Row-Level Security, fee invoice integrity, and offline CBT exams.
           </Typography>
         </Box>
         <Box
@@ -146,14 +146,14 @@ export const Dashboard: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
                 <Database size={22} color="#E0A526" />
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                  Double-Entry Ledger
+                  Fee & Payment Integrity
                 </Typography>
               </Box>
               <Typography variant="body2" sx={{ color: '#4B5563', mb: 2 }}>
-                Zero-sum debit/credit balance enforced on all fee receipts and adjustments.
+                Posted invoice immutability, historical fee snapshots, and idempotency protection on payment receipts.
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Chip label="Debit = Credit (Balanced)" color="success" size="small" />
+                <Chip label="Idempotency & Snapshots Active" color="success" size="small" />
               </Box>
             </CardContent>
           </Card>
@@ -165,15 +165,15 @@ export const Dashboard: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
                 <Smartphone size={22} color="#1B5E3F" />
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                  Offline-First Mobile Sync
+                  Offline CBT Exam Engine
                 </Typography>
               </Box>
               <Typography variant="body2" sx={{ color: '#4B5563', mb: 1 }}>
-                Local SQLite cache with queued mutations and delta-timestamp synchronization.
+                Encrypted exam package download, student progress auto-save, and idempotent test submission sync.
               </Typography>
               <Box sx={{ mt: 2 }}>
                 <Typography variant="caption" sx={{ color: '#6B7280' }}>
-                  Sync queue health
+                  CBT sync worker health
                 </Typography>
                 <LinearProgress variant="determinate" value={100} sx={{ height: 6, borderRadius: 3, mt: 0.5, bgcolor: '#E5E7EB', '& .MuiLinearProgress-bar': { bgcolor: '#1B5E3F' } }} />
               </Box>

@@ -1,21 +1,24 @@
-﻿# MODULE 06: FINANCE & DOUBLE-ENTRY LEDGER SPECIFICATION
+# MODULE 06: FEE & PAYMENT MANAGEMENT SPECIFICATION
 
 ## Fidel Hub Backend Specification
 
 | Module | Responsibility |
 | :--- | :--- |
-| **Domain Scope** | Fee invoicing, payment collection, receipts, general ledger double-entry journal vouchers. |
+| **Domain Scope** | Fee categories, student fee assignment snapshots, term invoicing, payment collection, receipts, and balances. |
 
 ---
 
 ## 1. Domain Entities & Value Objects
-- Define core entities, aggregates, and domain invariants.
+- `FeeCategory`: Tuition, Registration, Lab, Transport, Uniform.
+- `FeeStructure`: Grouping of fee lines for grade levels and branches.
+- `StudentFeeAssignment`: Student-specific fee snapshot with approved discounts or scholarships.
+- `Invoice`: Term fee invoice with status (`DRAFT`, `POSTED`, `PARTIALLY_PAID`, `PAID`, `CANCELLED`).
+- `InvoiceItem`: Line item (description, quantity, unit amount, net amount).
+- `Payment`: Amount, payment method, reference, idempotency token.
+- `Receipt`: Sequential receipt number, cashier user, timestamp.
 
-## 2. CQRS Commands & Handlers
-- Command definitions, payloads, validation rules, and transaction boundaries.
-
-## 3. CQRS Queries & Performance Projections
-- Read models, Dapper optimized query specifications, and pagination parameters.
-
-## 4. Domain Events & Transactional Outbox
-- Outbox events emitted by this module and consumed by workers or downstream modules.
+## 2. Key Commands & Queries
+- `GenerateTermInvoicesCommand`: Batch generates invoices for enrolled students based on their fee structure snapshots.
+- `PostInvoiceCommand`: Finalizes and locks invoice for payment.
+- `RecordPaymentCommand`: Records payment against posted invoice with idempotency key, generates receipt.
+- `GetStudentFeeStatementQuery`: Retrieves payment history, total billed, paid, and outstanding balance.

@@ -1,35 +1,23 @@
-# FINANCIAL INTEGRITY & DOUBLE-ENTRY LEDGER SPECIFICATION
+# FEE & INVOICE PAYMENT INTEGRITY SPECIFICATION
 
-## Fidel Hub — Accounting Subsystem Invariants
+## Fidel Hub — Fee Tracking Subsystem Invariants
 
 | Document Information | Details |
 | :--- | :--- |
-| **Document** | Financial Integrity Specification |
-| **Version** | 1.0-DRAFT |
+| **Document** | Fee & Invoice Payment Integrity Specification |
+| **Version** | 2.0-ALIGNED |
+| **Scope** | Student Fee Structures, Invoices, Payment Allocation & Receipts |
 
 ---
 
-## 1. Accounting Invariants
-1. **Double-Entry Principle**:
-   $$\sum \text{Debit} = \sum \text{Credit}$$
-   Every payment, invoice fee generation, or refund creates balancing ledger lines.
-2. **Immutability**:
-   Once committed to the database, a journal voucher is permanent. Corrections require posting a reversal journal entry.
-3. **Idempotency**:
-   Every incoming payment must provide an `Idempotency-Key` (UUID). If a request with the same key is repeated, the cached receipt is returned without re-executing ledger writes.
-
----
-
-## 2. Standard Transaction Scenarios
-
-### 2.1 Tuition Invoicing
-- **Debit**: Student Accounts Receivable (`1200-AR`)
-- **Credit**: Tuition Fee Revenue (`4100-REV-TUIT`)
-
-### 2.2 Parent Fee Payment (Bank / Telebirr)
-- **Debit**: Cash in Bank (`1010-BNK-CBE` / `1020-TELEBIRR`)
-- **Credit**: Student Accounts Receivable (`1200-AR`)
-
-### 2.3 Fee Adjustment / Scholarship Discount
-- **Debit**: Scholarship Expense (`5100-EXP-SCHOL`)
-- **Credit**: Student Accounts Receivable (`1200-AR`)
+## 1. System Invariants (Per PRD Section 5.12)
+1. **Branch-Specific Financial Scope**:
+   Financial fee structures, invoices, and payments belong strictly to authorized branches.
+2. **Fee Historical Snapshots**:
+   When a student is assigned fee structures, a snapshot of the fee rates is preserved to prevent subsequent institutional fee updates from altering past or active term billings.
+3. **Immutable Posted Invoices**:
+   Once an invoice is transitioned to `POSTED`, direct inline modification or deletion is prohibited. Corrections must occur via explicit adjustment items or authorized cancellation.
+4. **Idempotent Payment Recording**:
+   Payment requests require an `Idempotency-Key` (UUID). Replaying a payment with the same key returns the existing confirmed receipt rather than charging or crediting the student twice.
+5. **Sequential Official Receipts**:
+   Every confirmed payment generates an immutable, sequentially numbered receipt with branch identifier, payment method (Cash, Telebirr, CBE Birr, Bank Transfer), and verification hash/QR.

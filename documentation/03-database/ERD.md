@@ -5,7 +5,8 @@
 | Document Information | Details |
 | :--- | :--- |
 | **Document** | Entity Relationship Diagram |
-| **Version** | 1.0-DRAFT |
+| **Version** | 2.0-ALIGNED |
+| **Scope** | Core Multi-Tenant School Operations, Fees & CBT Examinations |
 
 ---
 
@@ -17,17 +18,21 @@ erDiagram
     TENANTS ||--o{ USERS : registers
     TENANTS ||--o{ STUDENTS : enrolls
     TENANTS ||--o{ ACADEMIC_YEARS : defines
-    TENANTS ||--o{ JOURNAL_ENTRIES : records
 
     BRANCHES ||--o{ CLASS_SECTIONS : contains
     CLASS_SECTIONS ||--o{ ENROLLMENTS : places
     STUDENTS ||--o{ ENROLLMENTS : has
-    STUDENTS ||--o{ ATTENDANCE_RECORDS : logs
-    STUDENTS ||--o{ FEE_INVOICES : billed
+    STUDENTS ||--o{ INVOICES : billed
 
-    FEE_INVOICES ||--o{ INVOICE_ITEMS : includes
-    FEE_INVOICES ||--o{ PAYMENTS : settles
-    PAYMENTS ||--|| JOURNAL_ENTRIES : creates
+    INVOICES ||--o{ INVOICE_ITEMS : details
+    INVOICES ||--o{ PAYMENTS : receives
+    PAYMENTS ||--|| RECEIPTS : issues
+
+    TENANTS ||--o{ CBT_EXAMS : creates
+    CBT_EXAMS ||--o{ CBT_QUESTIONS : contains
+    CBT_EXAMS ||--o{ CBT_SESSIONS : delivers
+    STUDENTS ||--o{ CBT_SESSIONS : takes
+    CBT_SESSIONS ||--o{ CBT_ANSWERS : records
 
     TENANTS {
         uuid id PK
@@ -39,21 +44,41 @@ erDiagram
     STUDENTS {
         uuid tenant_id FK
         uuid id PK
-        varchar admission_number
+        uuid branch_id FK
+        varchar admission_number UK
         varchar first_name
         varchar last_name
-        date date_of_birth
         varchar status
     }
 
-    JOURNAL_ENTRIES {
+    INVOICES {
         uuid tenant_id FK
         uuid id PK
-        varchar voucher_number
-        date transaction_date
-        varchar account_code
-        numeric debit_amount
-        numeric credit_amount
+        uuid student_id FK
+        varchar invoice_number UK
+        numeric total_amount
+        numeric paid_amount
+        varchar status
+    }
+
+    PAYMENTS {
+        uuid tenant_id FK
+        uuid id PK
+        uuid invoice_id FK
+        numeric amount
+        varchar payment_method
+        varchar reference_number
         uuid idempotency_key UK
+    }
+
+    CBT_SESSIONS {
+        uuid tenant_id FK
+        uuid id PK
+        uuid exam_id FK
+        uuid student_id FK
+        timestamp started_at
+        timestamp completed_at
+        varchar status
+        uuid client_sync_id UK
     }
 ```
