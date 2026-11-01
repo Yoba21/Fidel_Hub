@@ -1386,3 +1386,296 @@ Tracks offline CBT batches ingested from local exam venue servers.
 | eceived_at | TIMESTAMPTZ | Required |
 | processed_at | TIMESTAMPTZ | Nullable |
 | status | VARCHAR(30) | Required (RECEIVED, PROCESSED, PARTIAL_ERRORS) |
+
+
+---
+
+## 19. Library Schema (`library`)
+
+Supports physical book cataloging, circulation loans, overdue fines, and digital educational media.
+
+### 19.1 library.books
+
+Physical and digital books in the school library catalog.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK DEFAULT gen_random_uuid() |
+| tenant_id | UUID | Required, FK -> platform.tenants(id) |
+| branch_id | UUID | Required, FK -> school.branches(id) |
+| isbn | VARCHAR(30) | Nullable |
+| title | VARCHAR(255) | Required |
+| author | VARCHAR(200) | Required |
+| category | VARCHAR(100) | Required (Textbook, Fiction, Science, Reference) |
+| publisher | VARCHAR(150) | Nullable |
+| edition | VARCHAR(50) | Nullable |
+| rack_location | VARCHAR(50) | Nullable (e.g., 'Shelf B4-3') |
+| total_copies | INTEGER | Required, Default 1 |
+| available_copies | INTEGER | Required, Default 1 |
+| is_active | BOOLEAN | Required, Default true |
+| created_at | TIMESTAMPTZ | Required |
+| updated_at | TIMESTAMPTZ | Required |
+
+Indexes:
+```sql
+CREATE INDEX ix_library_books_branch ON library.books (tenant_id, branch_id);
+CREATE INDEX ix_library_books_search ON library.books (tenant_id, title, author);
+```
+
+### 19.2 library.book_loans
+
+Records checkout and return transactions of books to students or staff.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK DEFAULT gen_random_uuid() |
+| tenant_id | UUID | Required, FK -> platform.tenants(id) |
+| branch_id | UUID | Required, FK -> school.branches(id) |
+| book_id | UUID | Required, FK -> library.books(id) |
+| borrower_type | VARCHAR(20) | Required ('STUDENT', 'STAFF') |
+| borrower_id | UUID | Required (Student or Staff UUID) |
+| borrowed_at | TIMESTAMPTZ | Required |
+| due_date | DATE | Required |
+| returned_at | TIMESTAMPTZ | Nullable |
+| return_condition | VARCHAR(30) | Nullable ('GOOD', 'DAMAGED', 'LOST') |
+| status | VARCHAR(30) | Required ('ACTIVE', 'RETURNED', 'OVERDUE', 'LOST') |
+| notes | TEXT | Nullable |
+| created_by | UUID | Required |
+
+Constraints & Indexes:
+```sql
+CREATE INDEX ix_book_loans_active ON library.book_loans (tenant_id, branch_id, status) WHERE status = 'ACTIVE';
+CREATE INDEX ix_book_loans_borrower ON library.book_loans (tenant_id, borrower_id);
+```
+
+### 19.3 library.overdue_fines
+
+Tracks accrued overdue book fines integrated with the student fee statement.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK DEFAULT gen_random_uuid() |
+| tenant_id | UUID | Required, FK -> platform.tenants(id) |
+| branch_id | UUID | Required, FK -> school.branches(id) |
+| loan_id | UUID | Required, FK -> library.book_loans(id) |
+| student_id | UUID | Required, FK -> students.students(id) |
+| overdue_days | INTEGER | Required |
+| daily_rate | NUMERIC(14,2) | Required |
+| fine_amount | NUMERIC(14,2) | Required |
+| status | VARCHAR(30) | Required ('UNPAID', 'PAID', 'WAIVED') |
+| waiver_reason | TEXT | Nullable |
+| waived_by | UUID | Nullable |
+| created_at | TIMESTAMPTZ | Required |
+| settled_at | TIMESTAMPTZ | Nullable |
+
+### 19.4 library.digital_resources
+
+Online downloadable curriculum materials, PDF textbooks, and instructional video links.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK DEFAULT gen_random_uuid() |
+| tenant_id | UUID | Required, FK -> platform.tenants(id) |
+| branch_id | UUID | Nullable (null = tenant-wide) |
+| title | VARCHAR(255) | Required |
+| subject_id | UUID | Nullable, FK -> academic.subjects(id) |
+| grade_level | VARCHAR(50) | Nullable |
+| resource_type | VARCHAR(30) | Required ('PDF_TEXTBOOK', 'SYLLABUS', 'VIDEO_LINK', 'PAST_PAPER') |
+| file_url | TEXT | Required |
+| file_size_bytes | BIGINT | Nullable |
+| is_public | BOOLEAN | Required, Default false |
+| created_at | TIMESTAMPTZ | Required |
+
+---
+
+## 20. Facilities & Laboratory Schema (`facilities`)
+
+Manages science laboratories, ICT computer labs, equipment condition, consumables, and booking schedules.
+
+### 20.1 facilities.equipment
+
+Registry of apparatus, computers, projectors, and laboratory assets.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK DEFAULT gen_random_uuid() |
+| tenant_id | UUID | Required, FK -> platform.tenants(id) |
+| branch_id | UUID | Required, FK -> school.branches(id) |
+| asset_tag | VARCHAR(50) | Required, UNIQUE per branch |
+| name | VARCHAR(200) | Required |
+| facility_type | VARCHAR(50) | Required ('SCIENCE_LAB', 'ICT_LAB', 'WORKSHOP') |
+| category | VARCHAR(100) | Required (Microscope, PC, Bunsen Burner, Projector) |
+| condition_status | VARCHAR(30) | Required ('FUNCTIONAL', 'DAMAGED', 'UNDER_MAINTENANCE', 'DECOMMISSIONED') |
+| quantity | INTEGER | Required, Default 1 |
+| room_number | VARCHAR(50) | Nullable |
+| acquired_date | DATE | Nullable |
+| notes | TEXT | Nullable |
+| updated_at | TIMESTAMPTZ | Required |
+
+### 20.2 facilities.lab_bookings
+
+Schedules laboratory and ICT room usage to prevent timetable collisions.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK DEFAULT gen_random_uuid() |
+| tenant_id | UUID | Required, FK -> platform.tenants(id) |
+| branch_id | UUID | Required, FK -> school.branches(id) |
+| facility_name | VARCHAR(100) | Required ('Physics Lab', 'ICT Lab 1') |
+| teacher_user_id | UUID | Required, FK -> staff.staff(id) |
+| section_id | UUID | Required, FK -> academic.sections(id) |
+| subject_id | UUID | Required, FK -> academic.subjects(id) |
+| booking_date | DATE | Required |
+| period_number | INTEGER | Required |
+| status | VARCHAR(30) | Required ('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED') |
+| purpose | TEXT | Required |
+| safety_checklist_verified | BOOLEAN | Required, Default false |
+| created_at | TIMESTAMPTZ | Required |
+
+Constraint:
+```sql
+CONSTRAINT uq_facility_booking UNIQUE (tenant_id, branch_id, facility_name, booking_date, period_number);
+```
+
+### 20.3 facilities.incidents
+
+Breakage, chemical spills, or equipment damage incidents logged during practical sessions.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK DEFAULT gen_random_uuid() |
+| tenant_id | UUID | Required, FK -> platform.tenants(id) |
+| branch_id | UUID | Required, FK -> school.branches(id) |
+| booking_id | UUID | Nullable, FK -> facilities.lab_bookings(id) |
+| equipment_id | UUID | Nullable, FK -> facilities.equipment(id) |
+| student_id | UUID | Nullable, FK -> students.students(id) |
+| reported_by | UUID | Required |
+| incident_date | TIMESTAMPTZ | Required |
+| description | TEXT | Required |
+| replacement_cost | NUMERIC(14,2) | Nullable |
+| fee_invoice_id | UUID | Nullable, FK -> finance.invoices(id) |
+| resolution_status | VARCHAR(30) | Required ('OPEN', 'RESOLVED', 'BILLED') |
+
+---
+
+## 21. Health & Student Clinic Schema (`health`)
+
+Student medical records, verified allergies, and daily clinic dispensary visit logs.
+
+### 21.1 health.student_profiles
+
+Comprehensive health and emergency records for enrolled students.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK DEFAULT gen_random_uuid() |
+| tenant_id | UUID | Required, FK -> platform.tenants(id) |
+| student_id | UUID | Required, UNIQUE, FK -> students.students(id) |
+| blood_group | VARCHAR(5) | Nullable ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-') |
+| allergies | TEXT[] | Nullable (e.g., ARRAY['Penicillin', 'Peanuts']) |
+| chronic_conditions | TEXT[] | Nullable (e.g., ARRAY['Asthma', 'Epilepsy']) |
+| dietary_restrictions | TEXT | Nullable |
+| preferred_hospital | VARCHAR(200) | Nullable |
+| doctor_name | VARCHAR(150) | Nullable |
+| doctor_phone | VARCHAR(30) | Nullable |
+| emergency_notes | TEXT | Nullable |
+| updated_at | TIMESTAMPTZ | Required |
+
+### 21.2 health.clinic_visits
+
+Daily dispensary clinic logs tracking sickbay visits, treatments, and parent alerts.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK DEFAULT gen_random_uuid() |
+| tenant_id | UUID | Required, FK -> platform.tenants(id) |
+| branch_id | UUID | Required, FK -> school.branches(id) |
+| student_id | UUID | Required, FK -> students.students(id) |
+| nurse_user_id | UUID | Required |
+| visit_timestamp | TIMESTAMPTZ | Required |
+| temperature_celsius | NUMERIC(4,1) | Nullable |
+| symptoms | TEXT | Required |
+| triage_level | VARCHAR(20) | Required ('MILD', 'MODERATE', 'SEVERE') |
+| treatment_administered | TEXT | Required |
+| rest_bed_assigned | BOOLEAN | Required, Default false |
+| rest_bed_number | VARCHAR(20) | Nullable |
+| discharge_timestamp | TIMESTAMPTZ | Nullable |
+| parent_notified | BOOLEAN | Required, Default false |
+| notification_sms_id | UUID | Nullable |
+| created_at | TIMESTAMPTZ | Required |
+
+Index:
+```sql
+CREATE INDEX ix_clinic_visits_student ON health.clinic_visits (tenant_id, student_id, visit_timestamp DESC);
+```
+
+---
+
+## 22. Detailed Staff/Teacher Audit Schema (`audit`)
+
+Captures fine-grained access and modification telemetry for student assessment marks.
+
+### 22.1 audit.teacher_access_logs
+
+High-integrity tamper-evident log capturing marksheet edits and access events.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK DEFAULT gen_random_uuid() |
+| tenant_id | UUID | Required, FK -> platform.tenants(id) |
+| branch_id | UUID | Required, FK -> school.branches(id) |
+| staff_user_id | UUID | Required |
+| action_type | VARCHAR(50) | Required ('VIEW_MARKSHEET', 'ENTER_SCORE', 'UPDATE_SCORE', 'EXPORT_REPORT') |
+| student_id | UUID | Nullable, FK -> students.students(id) |
+| subject_id | UUID | Nullable, FK -> academic.subjects(id) |
+| exam_paper_id | UUID | Nullable, FK -> examinations.exam_papers(id) |
+| previous_score | NUMERIC(5,2) | Nullable |
+| updated_score | NUMERIC(5,2) | Nullable |
+| reason | TEXT | Nullable |
+| is_after_lock_deadline | BOOLEAN | Required, Default false |
+| ip_address | VARCHAR(45) | Nullable |
+| user_agent | TEXT | Nullable |
+| occurred_at | TIMESTAMPTZ | Required |
+
+Indexes:
+```sql
+CREATE INDEX ix_teacher_access_logs ON audit.teacher_access_logs (tenant_id, branch_id, occurred_at DESC);
+CREATE INDEX ix_teacher_access_tamper ON audit.teacher_access_logs (tenant_id, is_after_lock_deadline) WHERE is_after_lock_deadline = true;
+```
+
+---
+
+## 23. SaaS Platform Subscription & Quota Schema (`platform`)
+
+Enforces multi-tenant tier limits, student caps, and database snapshot exports.
+
+### 23.1 platform.tenant_quotas
+
+Defines plan tiers, student ceilings, and branch allowances.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK DEFAULT gen_random_uuid() |
+| tenant_id | UUID | Required, UNIQUE, FK -> platform.tenants(id) |
+| subscription_plan | VARCHAR(50) | Required ('STARTER', 'STANDARD', 'ENTERPRISE') |
+| max_students | INTEGER | Required (e.g., 500, 1500, 5000) |
+| max_branches | INTEGER | Required (e.g., 1, 3, 10) |
+| storage_quota_gb | INTEGER | Required, Default 20 |
+| is_cbt_enabled | BOOLEAN | Required, Default true |
+| subscription_expires_at | TIMESTAMPTZ | Nullable |
+| updated_at | TIMESTAMPTZ | Required |
+
+### 23.2 platform.tenant_backups
+
+Records tenant-isolated database and media backup archives.
+
+| Column | Type | Rules |
+| :--- | :--- | :--- |
+| id | UUID | PK DEFAULT gen_random_uuid() |
+| tenant_id | UUID | Required, FK -> platform.tenants(id) |
+| backup_type | VARCHAR(30) | Required ('DAILY_SCHEDULED', 'MANUAL_EXPORT') |
+| file_size_bytes | BIGINT | Required |
+| storage_path | TEXT | Required |
+| checksum_sha256 | VARCHAR(64) | Required |
+| expires_at | TIMESTAMPTZ | Required |
+| created_at | TIMESTAMPTZ | Required |

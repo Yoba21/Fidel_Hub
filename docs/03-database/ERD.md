@@ -330,3 +330,202 @@ erDiagram
         int rating_score
     }
 ```
+
+
+---
+
+## 6. Library Circulation & Media Resource Model
+
+```mermaid
+erDiagram
+    BRANCHES ||--o{ BOOKS : houses
+    BOOKS ||--o{ BOOK_LOANS : checked_out
+    STUDENTS ||--o{ BOOK_LOANS : borrows
+    STAFF ||--o{ BOOK_LOANS : borrows
+    BOOK_LOANS ||--o{ OVERDUE_FINES : incurs
+    OVERDUE_FINES }o--|| STUDENTS : billed_to
+
+    BOOKS {
+        uuid id PK
+        uuid tenant_id FK
+        uuid branch_id FK
+        varchar isbn
+        varchar title
+        varchar author
+        varchar category
+        int total_copies
+        int available_copies
+        varchar rack_location
+    }
+
+    BOOK_LOANS {
+        uuid id PK
+        uuid tenant_id FK
+        uuid branch_id FK
+        uuid book_id FK
+        varchar borrower_type
+        uuid borrower_id FK
+        timestamp borrowed_at
+        date due_date
+        timestamp returned_at
+        varchar return_condition
+        varchar status
+    }
+
+    OVERDUE_FINES {
+        uuid id PK
+        uuid tenant_id FK
+        uuid branch_id FK
+        uuid loan_id FK
+        uuid student_id FK
+        int overdue_days
+        numeric daily_rate
+        numeric fine_amount
+        varchar status
+    }
+
+    DIGITAL_RESOURCES {
+        uuid id PK
+        uuid tenant_id FK
+        varchar title
+        uuid subject_id FK
+        varchar resource_type
+        text file_url
+        boolean is_public
+    }
+```
+
+---
+
+## 7. Facilities, Laboratory & Safety Model
+
+```mermaid
+erDiagram
+    BRANCHES ||--o{ LAB_EQUIPMENT : owns
+    BRANCHES ||--o{ LAB_BOOKINGS : reserves
+    TEACHERS ||--o{ LAB_BOOKINGS : requests
+    SECTIONS ||--o{ LAB_BOOKINGS : attends
+    LAB_BOOKINGS ||--o{ INCIDENTS : records
+    LAB_EQUIPMENT ||--o{ INCIDENTS : affected
+
+    LAB_EQUIPMENT {
+        uuid id PK
+        uuid tenant_id FK
+        uuid branch_id FK
+        varchar asset_tag UK
+        varchar name
+        varchar facility_type
+        varchar category
+        varchar condition_status
+        int quantity
+    }
+
+    LAB_BOOKINGS {
+        uuid id PK
+        uuid tenant_id FK
+        uuid branch_id FK
+        varchar facility_name
+        uuid teacher_user_id FK
+        uuid section_id FK
+        date booking_date
+        int period_number
+        varchar status
+        boolean safety_checklist_verified
+    }
+
+    INCIDENTS {
+        uuid id PK
+        uuid tenant_id FK
+        uuid branch_id FK
+        uuid booking_id FK
+        uuid equipment_id FK
+        uuid student_id FK
+        timestamp incident_date
+        numeric replacement_cost
+        varchar resolution_status
+    }
+```
+
+---
+
+## 8. Student Health, Clinic & Emergency Model
+
+```mermaid
+erDiagram
+    STUDENTS ||--|| HEALTH_PROFILES : has
+    STUDENTS ||--o{ CLINIC_VISITS : reports
+    BRANCHES ||--o{ CLINIC_VISITS : hosts
+
+    HEALTH_PROFILES {
+        uuid id PK
+        uuid tenant_id FK
+        uuid student_id UK
+        varchar blood_group
+        text_array allergies
+        text_array chronic_conditions
+        varchar preferred_hospital
+        varchar doctor_phone
+    }
+
+    CLINIC_VISITS {
+        uuid id PK
+        uuid tenant_id FK
+        uuid branch_id FK
+        uuid student_id FK
+        uuid nurse_user_id FK
+        timestamp visit_timestamp
+        numeric temperature_celsius
+        text symptoms
+        varchar triage_level
+        text treatment_administered
+        boolean rest_bed_assigned
+        boolean parent_notified
+    }
+```
+
+---
+
+## 9. Teacher Grade Audit & Platform Subscription Quota Model
+
+```mermaid
+erDiagram
+    TENANTS ||--|| TENANT_QUOTAS : constrained_by
+    TENANTS ||--o{ TENANT_BACKUPS : archives
+    STAFF ||--o{ TEACHER_ACCESS_LOGS : performs
+    STUDENTS ||--o{ TEACHER_ACCESS_LOGS : targets
+
+    TENANT_QUOTAS {
+        uuid id PK
+        uuid tenant_id UK
+        varchar subscription_plan
+        int max_students
+        int max_branches
+        int storage_quota_gb
+        boolean is_cbt_enabled
+    }
+
+    TEACHER_ACCESS_LOGS {
+        uuid id PK
+        uuid tenant_id FK
+        uuid branch_id FK
+        uuid staff_user_id FK
+        varchar action_type
+        uuid student_id FK
+        uuid subject_id FK
+        numeric previous_score
+        numeric updated_score
+        text reason
+        boolean is_after_lock_deadline
+        timestamp occurred_at
+    }
+
+    TENANT_BACKUPS {
+        uuid id PK
+        uuid tenant_id FK
+        varchar backup_type
+        bigint file_size_bytes
+        text storage_path
+        varchar checksum_sha256
+        timestamp expires_at
+    }
+```
