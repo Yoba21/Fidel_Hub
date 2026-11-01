@@ -19,4 +19,4 @@ Chosen: **Shared Database with PostgreSQL Kernel-Level Row-Level Security (RLS) 
 2. Connection checkout executes `SET LOCAL app.current_tenant_id = '<current_tenant_uuid>'`.
 3. Application pool connects exclusively via the non-superuser role `fidel_app_user`.
 4. Kernel-level policy: `USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid)`.
-5. Primary keys and foreign keys incorporate composite pairs `(tenant_id, id)` to prevent cross-tenant referencing at the storage constraint level.
+5. Standardized Primary & Foreign Keys: Tables use single-column UUID primary keys (`PRIMARY KEY (id)`) paired with secondary composite unique constraints (`UNIQUE (tenant_id, id)`) and composite foreign keys (`FOREIGN KEY (tenant_id, foreign_id) REFERENCES target_table (tenant_id, id)`), preventing cross-tenant referencing at the storage constraint level while maintaining standard ORM identity mapping.

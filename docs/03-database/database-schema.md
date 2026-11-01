@@ -1,4 +1,4 @@
-﻿# DATABASE DESIGN SPECIFICATION (DDS)
+# DATABASE DESIGN SPECIFICATION (DDS)
 
 ## Fidel Hub — School Management SaaS Platform
 
@@ -32,7 +32,7 @@ It defines the database schemas, entities, relationships, constraints, indexes, 
 | Component | Technology |
 | :--- | :--- |
 | **Database** | PostgreSQL |
-| **ORM** | Entity Framework Core 10 |
+| **ORM** | Entity Framework Core 8 (.NET 8 LTS) |
 | **Database provider** | Npgsql |
 | **Primary key strategy** | UUID |
 | **Monetary values** | NUMERIC(14,2) |
@@ -83,15 +83,18 @@ The database will use the following logical schemas.
 | :--- | :--- |
 | `platform` | SaaS platform and tenant administration |
 | `identity` | Users, roles, permissions, and access |
-| `school` | Branches and school configuration |
-| `students` | Student profiles and guardians |
-| `admissions` | Admission applications |
-| `academic` | Academic years, classes, sections, and enrollment |
+| `school` | Physical branch campuses, academic calendars, branch settings |
+| `students` | Student demographic master records, guardian mappings |
+| `admissions` | Prospective student applications and intake screening |
+| `academic` | Class levels, streams, subjects, timetables, lesson plans |
 | `staff` | Staff and teacher records |
 | `attendance` | Attendance sessions and records |
-| `examinations` | Assessments, marks, and results |
+| `examinations` | Assessments, marks, and offline CBT sessions |
 | `finance` | Fees, invoices, payments, and refunds |
-| `audit` | Audit records |
+| `library` | Book cataloging, circulation loans, overdue fines |
+| `facilities` | Lab equipment registry, room booking, incident logs |
+| `health` | Student health profiles, dispensary clinic visits |
+| `audit` | Audit records and teacher grade modification telemetry |
 | `integration` | Outbox and offline synchronization |
 
 These schemas organize the database. They do not represent separate databases or microservices.
@@ -414,18 +417,13 @@ Branch-scoped role assignments must reference a branch belonging to that tenant.
 
 A tenant-wide role must be explicitly distinguishable from a branch-scoped role.
 
-### 7.8 Authentication Session Tables
+### 7.8 Authentication & Session Architecture
 
-The identity module must also support secure refresh-token and session management.
-
-Recommended tables:
-- `identity.refresh_tokens`
-- `identity.user_sessions`
-- `identity.password_reset_tokens`
-
-Refresh-token records must support expiration, revocation, rotation, and secure token hashing.
-
-Do not store plaintext refresh tokens.
+Authentication lifecycle, session management, credentials, password hashes, and refresh tokens are managed by the dedicated **Better Auth Service** (Node.js/PostgreSQL with Drizzle ORM, Organizations, and JWT plugins) in its own dedicated schema:
+- Better Auth manages credentials, Argon2id password hashes, sessions, refresh tokens, password resets, and organization memberships (`tenant_id`).
+- Better Auth issues cryptographically signed JWTs (RS256/EdDSA) with JWKS public key rotation.
+- **ASP.NET Core (`FidelHub.Api`)** functions strictly as a **stateless JWT Resource Server** (`JwtBearer` via JWKS validation). It maintains zero local session state.
+- ASP.NET Core relies on the local PostgreSQL tables defined above (`identity.user_branch_access`, `identity.roles`, `identity.permissions`, `identity.role_permissions`, and `identity.user_roles`) for campus branch scoping and granular RBAC/PBAC authorization.
 
 ---
 
@@ -506,10 +504,11 @@ Stores student identity and personal profile.
 | :--- | :--- | :--- |
 | `id` | UUID | PK |
 | `tenant_id` | UUID | Required |
-| `student_number` | VARCHAR(50) | Required within tenant |
+| `current_branch_id` | UUID | Nullable (FK to school.branches) |
+| `admission_number` | VARCHAR(50) | Required within tenant |
 | `first_name` | VARCHAR(100) | Required |
-| `middle_name` | VARCHAR(100) | Optional |
-| `last_name` | VARCHAR(100) | Required |
+| `father_name` | VARCHAR(100) | Required |
+| `grandfather_name` | VARCHAR(100) | Required |
 | `gender` | VARCHAR(20) | Optional |
 | `date_of_birth` | DATE | Optional |
 | `phone` | VARCHAR(30) | Optional |
@@ -522,10 +521,12 @@ Stores student identity and personal profile.
 Constraints:
 ```sql
 UNIQUE (tenant_id, id)
-UNIQUE (tenant_id, student_number)
+UNIQUE (tenant_id, admission_number)
 ```
 
 A student identity is tenant-owned, not branch-owned.
+
+`current_branch_id` provides fast campus filtering and current branch directory lookups, while full historical branch and class progression is preserved in `academic.student_enrollments`.
 
 This allows the same student identity to be preserved when the student transfers between branches belonging to the same tenant.
 
@@ -585,8 +586,8 @@ Stores admission applications.
 | `academic_year_id` | UUID | Required |
 | `student_id` | UUID | Nullable until linked |
 | `applicant_first_name` | VARCHAR(100) | Required |
-| `applicant_middle_name` | VARCHAR(100) | Optional |
-| `applicant_last_name` | VARCHAR(100) | Required |
+| `applicant_father_name` | VARCHAR(100) | Required |
+| `applicant_grandfather_name` | VARCHAR(100) | Required |
 | `date_of_birth` | DATE | Optional |
 | `requested_class_id` | UUID | Required |
 | `status` | VARCHAR(30) | Required |
@@ -1522,7 +1523,7 @@ Schedules laboratory and ICT room usage to prevent timetable collisions.
 | tenant_id | UUID | Required, FK -> platform.tenants(id) |
 | branch_id | UUID | Required, FK -> school.branches(id) |
 | facility_name | VARCHAR(100) | Required ('Physics Lab', 'ICT Lab 1') |
-| teacher_user_id | UUID | Required, FK -> staff.staff(id) |
+| `teacher_user_id` | UUID | Required, FK -> staff.staff_members(id) |
 | section_id | UUID | Required, FK -> academic.sections(id) |
 | subject_id | UUID | Required, FK -> academic.subjects(id) |
 | booking_date | DATE | Required |
@@ -1562,50 +1563,60 @@ Breakage, chemical spills, or equipment damage incidents logged during practical
 
 Student medical records, verified allergies, and daily clinic dispensary visit logs.
 
-### 21.1 health.student_profiles
+### 21.1 `health.student_health_profiles`
 
 Comprehensive health and emergency records for enrolled students.
 
 | Column | Type | Rules |
 | :--- | :--- | :--- |
-| id | UUID | PK DEFAULT gen_random_uuid() |
-| tenant_id | UUID | Required, FK -> platform.tenants(id) |
-| student_id | UUID | Required, UNIQUE, FK -> students.students(id) |
-| blood_group | VARCHAR(5) | Nullable ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-') |
-| allergies | TEXT[] | Nullable (e.g., ARRAY['Penicillin', 'Peanuts']) |
-| chronic_conditions | TEXT[] | Nullable (e.g., ARRAY['Asthma', 'Epilepsy']) |
-| dietary_restrictions | TEXT | Nullable |
-| preferred_hospital | VARCHAR(200) | Nullable |
-| doctor_name | VARCHAR(150) | Nullable |
-| doctor_phone | VARCHAR(30) | Nullable |
-| emergency_notes | TEXT | Nullable |
-| updated_at | TIMESTAMPTZ | Required |
+| `id` | UUID | PK DEFAULT gen_random_uuid() |
+| `tenant_id` | UUID | Required, FK -> platform.tenants(id) |
+| `student_id` | UUID | Required, UNIQUE, FK -> students.students(id) |
+| `blood_group` | VARCHAR(5) | Nullable ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-') |
+| `allergies` | TEXT[] | Nullable (e.g., ARRAY['Penicillin', 'Peanuts']) |
+| `chronic_conditions` | TEXT[] | Nullable (e.g., ARRAY['Asthma', 'Epilepsy']) |
+| `dietary_restrictions` | TEXT | Nullable |
+| `emergency_instructions` | TEXT | Nullable |
+| `preferred_hospital` | VARCHAR(200) | Nullable |
+| `doctor_name` | VARCHAR(150) | Nullable |
+| `doctor_phone` | VARCHAR(30) | Nullable |
+| `emergency_notes` | TEXT | Nullable |
+| `created_at` | TIMESTAMPTZ | Required |
+| `updated_at` | TIMESTAMPTZ | Required |
 
-### 21.2 health.clinic_visits
+Constraints:
+```sql
+CONSTRAINT uq_student_health_profiles_tenant_id UNIQUE (tenant_id, id);
+CONSTRAINT uq_student_health_profiles_student UNIQUE (tenant_id, student_id);
+```
+
+### 21.2 `health.clinic_visits`
 
 Daily dispensary clinic logs tracking sickbay visits, treatments, and parent alerts.
 
 | Column | Type | Rules |
 | :--- | :--- | :--- |
-| id | UUID | PK DEFAULT gen_random_uuid() |
-| tenant_id | UUID | Required, FK -> platform.tenants(id) |
-| branch_id | UUID | Required, FK -> school.branches(id) |
-| student_id | UUID | Required, FK -> students.students(id) |
-| nurse_user_id | UUID | Required |
-| visit_timestamp | TIMESTAMPTZ | Required |
-| temperature_celsius | NUMERIC(4,1) | Nullable |
-| symptoms | TEXT | Required |
-| triage_level | VARCHAR(20) | Required ('MILD', 'MODERATE', 'SEVERE') |
-| treatment_administered | TEXT | Required |
-| rest_bed_assigned | BOOLEAN | Required, Default false |
-| rest_bed_number | VARCHAR(20) | Nullable |
-| discharge_timestamp | TIMESTAMPTZ | Nullable |
-| parent_notified | BOOLEAN | Required, Default false |
-| notification_sms_id | UUID | Nullable |
-| created_at | TIMESTAMPTZ | Required |
+| `id` | UUID | PK DEFAULT gen_random_uuid() |
+| `tenant_id` | UUID | Required, FK -> platform.tenants(id) |
+| `branch_id` | UUID | Required, FK -> school.branches(id) |
+| `student_id` | UUID | Required, FK -> students.students(id) |
+| `nurse_user_id` | UUID | Required, FK -> staff.staff_members(id) |
+| `visit_timestamp` | TIMESTAMPTZ | Required |
+| `temperature_celsius` | NUMERIC(4,1) | Nullable |
+| `symptoms` | TEXT | Required |
+| `triage_level` | VARCHAR(20) | Required ('MILD', 'MODERATE', 'SEVERE') |
+| `treatment_administered` | TEXT | Required |
+| `rest_bed_assigned` | BOOLEAN | Required, Default false |
+| `rest_bed_number` | VARCHAR(20) | Nullable |
+| `discharge_timestamp` | TIMESTAMPTZ | Nullable |
+| `parent_notified` | BOOLEAN | Required, Default false |
+| `notification_sms_id` | UUID | Nullable |
+| `created_at` | TIMESTAMPTZ | Required |
 
-Index:
+Constraints & Indexes:
 ```sql
+CONSTRAINT uq_clinic_visits_tenant_id UNIQUE (tenant_id, id);
+CONSTRAINT uq_clinic_visits_branch_id UNIQUE (tenant_id, branch_id, id);
 CREATE INDEX ix_clinic_visits_student ON health.clinic_visits (tenant_id, student_id, visit_timestamp DESC);
 ```
 

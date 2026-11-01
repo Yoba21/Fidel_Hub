@@ -17,6 +17,8 @@
 
 In Ethiopian K–12 schools, power fluctuations and total internet blackouts are common occurrences during national or term examinations. Halting an examination when internet connectivity drops is unacceptable.
 
+In accordance with architectural Decision #7, **offline execution and local SQLite WAL synchronization are strictly confined to Computer-Based Testing (CBT) & Examinations in the initial release**. Other school operations (such as teacher attendance and fee collection) operate online in the initial release, with mobile offline attendance queueing scheduled for Phase 2.
+
 Fidel Hub’s **Local Exam Venue Server (EVS)** guarantees that:
 1. **100% Zero-Internet Test Delivery**: Once an exam package is downloaded to the school's Local Venue Server, the entire examination executes across the local school Wi-Fi or Ethernet LAN with zero dependency on the external internet.
 2. **Instant Crash Recovery**: If a student workstation loses power or the browser crashes, powering it back on restores the session with **zero lost answers and exact remaining countdown time**.
@@ -191,7 +193,7 @@ CREATE TABLE local_student_answers (
 ### 6.1 Drizzle ORM & better-sqlite3 in Local Venue Server
 The Local Exam Venue Server runtime uses Node.js / TypeScript with **Drizzle ORM** and `better-sqlite3` in WAL mode. This guarantees type-safe database queries with sub-millisecond execution times:
 
-`	ypescript
+```typescript
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
@@ -210,12 +212,12 @@ export const localStudentAnswers = sqliteTable('local_student_answers', {
   elapsedSeconds: integer('elapsed_seconds').notNull(),
   updatedAt: text('updated_at').notNull(),
 });
-`
+```
 
 ### 6.2 Inbound Payload Validation with Zod
 Before the Local Venue Server stores or syncs answers, payloads are validated via a strict **Zod** contract:
 
-`	ypescript
+```typescript
 import { z } from 'zod';
 
 export const SyncBatchPayloadSchema = z.object({
@@ -234,7 +236,7 @@ export const SyncBatchPayloadSchema = z.object({
     }))
   }))
 });
-`
+```
 
 ### 6.3 Sentry Real-Time Crash Monitoring
 During live assessments, student workstations report unexpected errors to Sentry tagged with `venue_server_id` and `exam_paper_id`. If an unhandled client error occurs, Sentry alerts proctors immediately while local SQLite WAL ensures no student keystrokes are lost.

@@ -132,13 +132,14 @@ erDiagram
     STUDENTS ||--o{ STUDENT_GUARDIANS : links
     GUARDIANS ||--o{ STUDENT_GUARDIANS : associates
     STUDENTS ||--o{ APPLICATIONS : promoted_from
-    STUDENTS ||--|| HEALTH_PROFILES : has
+    STUDENTS ||--|| STUDENT_HEALTH_PROFILES : has
     STUDENTS ||--o{ CLINIC_VISITS : logs
     
     STUDENTS {
         uuid id PK
         uuid tenant_id FK
-        varchar student_number UK
+        uuid current_branch_id FK
+        varchar admission_number UK
         varchar first_name
         varchar father_name
         varchar grandfather_name
@@ -165,10 +166,10 @@ erDiagram
         boolean can_collect_student
     }
 
-    HEALTH_PROFILES {
+    STUDENT_HEALTH_PROFILES {
         uuid id PK
         uuid tenant_id FK
-        uuid student_id FK
+        uuid student_id UK
         varchar blood_group
         text allergies
         text emergency_instructions
@@ -235,7 +236,7 @@ erDiagram
         uuid branch_id FK
         uuid student_id FK
         varchar invoice_number UK
-        numeric total_amount
+        numeric total_amount_due
         numeric paid_amount
         varchar status
         date due_date
@@ -341,7 +342,7 @@ erDiagram
     BRANCHES ||--o{ BOOKS : houses
     BOOKS ||--o{ BOOK_LOANS : checked_out
     STUDENTS ||--o{ BOOK_LOANS : borrows
-    STAFF ||--o{ BOOK_LOANS : borrows
+    STAFF_MEMBERS ||--o{ BOOK_LOANS : borrows
     BOOK_LOANS ||--o{ OVERDUE_FINES : incurs
     OVERDUE_FINES }o--|| STUDENTS : billed_to
 
@@ -452,11 +453,11 @@ erDiagram
 
 ```mermaid
 erDiagram
-    STUDENTS ||--|| HEALTH_PROFILES : has
+    STUDENTS ||--|| STUDENT_HEALTH_PROFILES : has
     STUDENTS ||--o{ CLINIC_VISITS : reports
     BRANCHES ||--o{ CLINIC_VISITS : hosts
 
-    HEALTH_PROFILES {
+    STUDENT_HEALTH_PROFILES {
         uuid id PK
         uuid tenant_id FK
         uuid student_id UK
@@ -491,7 +492,7 @@ erDiagram
 erDiagram
     TENANTS ||--|| TENANT_QUOTAS : constrained_by
     TENANTS ||--o{ TENANT_BACKUPS : archives
-    STAFF ||--o{ TEACHER_ACCESS_LOGS : performs
+    STAFF_MEMBERS ||--o{ TEACHER_ACCESS_LOGS : performs
     STUDENTS ||--o{ TEACHER_ACCESS_LOGS : targets
 
     TENANT_QUOTAS {

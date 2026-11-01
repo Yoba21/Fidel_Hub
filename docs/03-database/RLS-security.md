@@ -9,6 +9,10 @@
 | **Status** | Approved Baseline |
 | **Database Engine** | PostgreSQL 16+ |
 | **Enforcement Layer** | Storage Kernel via PostgreSQL Row-Level Security |
+| **Backend Framework** | .NET 10 LTS (`net10.0`) & EF Core 10 |
+| **Prerequisites** | Developers must install .NET 10 SDK or higher. |
+| **Package Dependencies** | `Microsoft.EntityFrameworkCore.*: 10.x`, `Npgsql.EntityFrameworkCore.PostgreSQL: 10.x` |
+| **Container Directives** | `mcr.microsoft.com/dotnet/aspnet:10.0` |
 
 ---
 

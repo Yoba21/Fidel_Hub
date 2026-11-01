@@ -138,7 +138,28 @@ app.Use(async (context, next) =>
 
 app.UseAuthorization();
 
-// 6. Base API Endpoints
+// 6. Base Health & Observability Endpoints (Kubernetes & Docker Probes)
+app.MapGet("/health/live", () => Results.Ok(new { status = "Live", timestamp = DateTime.UtcNow }))
+    .WithName("LivenessProbe")
+    .AllowAnonymous();
+
+app.MapGet("/health/ready", async (FidelHubDbContext db) =>
+{
+    try
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+        return canConnect
+            ? Results.Ok(new { status = "Ready", database = "Connected", timestamp = DateTime.UtcNow })
+            : Results.StatusCode(503);
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new { status = "Unhealthy", error = ex.Message }, statusCode: 503);
+    }
+})
+.WithName("ReadinessProbe")
+.AllowAnonymous();
+
 app.MapGet("/api/health", (ICurrentTenantContext tenant) => Results.Ok(new
 {
     status = "Healthy",

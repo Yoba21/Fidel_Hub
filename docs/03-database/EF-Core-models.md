@@ -1,4 +1,4 @@
-# ENTITY FRAMEWORK CORE 10 MODELS SPECIFICATION
+# ENTITY FRAMEWORK CORE 8 MODELS SPECIFICATION
 
 ## Fidel Hub — Data Access & Domain Model Mapping
 
@@ -7,7 +7,7 @@
 | **Document ID** | EFC-001 |
 | **Version** | 1.0 |
 | **Status** | Approved Baseline |
-| **Framework** | Entity Framework Core 10 (Npgsql.EntityFrameworkCore.PostgreSQL) |
+| **Framework** | Entity Framework Core 8 (Npgsql.EntityFrameworkCore.PostgreSQL / .NET 10 LTS) |
 | **Pattern** | Domain-Driven Design (DDD) Aggregates, Value Objects & Fluent Configurations |
 
 ---
@@ -17,18 +17,29 @@
 Every persistent domain entity in Fidel Hub inherits from strongly-typed base abstractions ensuring multi-tenant isolation, branch scoping, and auditability.
 
 ```csharp
-namespace FidelHub.Domain.Common;
+namespace FidelHub.Shared.Kernel;
 
+using MediatR;
+
+/// <summary>
+/// Identifies an entity isolated by tenant organization.
+/// </summary>
 public interface ITenantScoped
 {
     Guid TenantId { get; }
 }
 
-public interface IBranchScoped : ITenantScoped
+/// <summary>
+/// Identifies an entity scoped to a specific branch campus within a tenant.
+/// </summary>
+public interface IBranchScoped
 {
     Guid BranchId { get; }
 }
 
+/// <summary>
+/// Standard audit metadata tracking creation and modification timestamps and actors.
+/// </summary>
 public interface IAuditableEntity
 {
     DateTime CreatedAtUtc { get; }
@@ -37,6 +48,17 @@ public interface IAuditableEntity
     Guid? UpdatedBy { get; }
 }
 
+/// <summary>
+/// Base domain event contract.
+/// </summary>
+public interface IDomainEvent : INotification
+{
+    DateTime OccurredAtUtc { get; }
+}
+
+/// <summary>
+/// Base class for all domain aggregates and entities with encapsulated identity and domain event publishing.
+/// </summary>
 public abstract class BaseEntity<TId>
 {
     public TId Id { get; protected set; } = default!;
@@ -46,6 +68,20 @@ public abstract class BaseEntity<TId>
 
     public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
     public void ClearDomainEvents() => _domainEvents.Clear();
+}
+
+/// <summary>
+/// Scoped ambient multi-tenancy context extracted from JWT claims or subdomain resolution.
+/// </summary>
+public interface ICurrentTenantContext
+{
+    Guid? TenantId { get; }
+    Guid? BranchId { get; }
+    Guid? UserId { get; }
+    string? Subdomain { get; }
+    bool IsResolved { get; }
+
+    void Initialize(Guid tenantId, Guid? branchId, Guid? userId, string? subdomain = null);
 }
 ```
 
@@ -77,12 +113,14 @@ public record Money(decimal Amount, string Currency = "ETB")
 ### 3.1 Student Aggregate (`students` & `health` schemas)
 
 ```csharp
-namespace FidelHub.Domain.Students;
+namespace FidelHub.Modules.Students.Domain.Entities;
 
-public class Student : BaseEntity<Guid>, IBranchScoped, IAuditableEntity
+using FidelHub.Shared.Kernel;
+
+public class Student : BaseEntity<Guid>, ITenantScoped, IAuditableEntity
 {
     public Guid TenantId { get; private set; }
-    public Guid BranchId { get; private set; }
+    public Guid? CurrentBranchId { get; private set; }
     public string AdmissionNumber { get; private set; } = default!;
     public EthiopianName Name { get; private set; } = default!;
     public DateOnly DateOfBirth { get; private set; }
@@ -100,13 +138,20 @@ public class Student : BaseEntity<Guid>, IBranchScoped, IAuditableEntity
 
     private Student() { } // EF Core constructor
 
-    public static Student Create(Guid tenantId, Guid branchId, string admissionNumber, EthiopianName name, DateOnly dob, string gender, Guid createdBy)
+    public static Student Create(
+        Guid tenantId,
+        Guid? currentBranchId,
+        string admissionNumber,
+        EthiopianName name,
+        DateOnly dob,
+        string gender,
+        Guid createdBy)
     {
         return new Student
         {
             Id = Guid.NewGuid(),
             TenantId = tenantId,
-            BranchId = branchId,
+            CurrentBranchId = currentBranchId,
             AdmissionNumber = admissionNumber,
             Name = name,
             DateOfBirth = dob,
@@ -116,13 +161,22 @@ public class Student : BaseEntity<Guid>, IBranchScoped, IAuditableEntity
             CreatedBy = createdBy
         };
     }
+
+    public void AssignBranch(Guid? branchId, Guid updatedBy)
+    {
+        CurrentBranchId = branchId;
+        UpdatedAtUtc = DateTime.UtcNow;
+        UpdatedBy = updatedBy;
+    }
 }
 ```
 
 ### 3.2 CBT Examination Aggregate (`examinations` schema)
 
 ```csharp
-namespace FidelHub.Domain.Examinations;
+namespace FidelHub.Modules.Examinations.Domain.Entities;
+
+using FidelHub.Shared.Kernel;
 
 public class ExamPaper : BaseEntity<Guid>, IBranchScoped, IAuditableEntity
 {
@@ -166,7 +220,9 @@ public class ExamSession : BaseEntity<Guid>, IBranchScoped
 ### 3.3 Student Fee & Invoicing Aggregate (`finance` schema)
 
 ```csharp
-namespace FidelHub.Domain.Finance;
+namespace FidelHub.Modules.Finance.Domain.Entities;
+
+using FidelHub.Shared.Kernel;
 
 public class Invoice : BaseEntity<Guid>, IBranchScoped, IAuditableEntity
 {
@@ -212,7 +268,9 @@ public class Invoice : BaseEntity<Guid>, IBranchScoped, IAuditableEntity
 ### 3.4 Library Circulation Aggregate (`library` schema)
 
 ```csharp
-namespace FidelHub.Domain.Library;
+namespace FidelHub.Modules.Library.Domain.Entities;
+
+using FidelHub.Shared.Kernel;
 
 public class BookLoan : BaseEntity<Guid>, IBranchScoped
 {
@@ -235,7 +293,11 @@ public class BookLoan : BaseEntity<Guid>, IBranchScoped
 ## 4. Fluent API Configurations & Schema Mapping
 
 ```csharp
-namespace FidelHub.Infrastructure.Data.Configurations;
+namespace FidelHub.Modules.Students.Infrastructure.Configurations;
+
+using FidelHub.Modules.Students.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 public class StudentConfiguration : IEntityTypeConfiguration<Student>
 {
@@ -245,7 +307,7 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
         builder.HasKey(s => s.Id);
 
         builder.Property(s => s.TenantId).HasColumnName("tenant_id").IsRequired();
-        builder.Property(s => s.BranchId).HasColumnName("branch_id").IsRequired();
+        builder.Property(s => s.CurrentBranchId).HasColumnName("current_branch_id");
         builder.Property(s => s.AdmissionNumber).HasColumnName("admission_number").HasMaxLength(50).IsRequired();
         builder.HasIndex(s => new { s.TenantId, s.AdmissionNumber }).IsUnique();
 
@@ -273,18 +335,97 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
 
 ## 5. DbContext & Transactional Outbox SaveChanges Interceptor
 
+### 5.1 OutboxMessage Entity & Configuration
+
 ```csharp
-namespace FidelHub.Infrastructure.Data;
+namespace FidelHub.Shared.Kernel;
+
+public class OutboxMessage
+{
+    public Guid Id { get; private set; }
+    public Guid TenantId { get; private set; }
+    public string EventType { get; private set; } = default!;
+    public string Payload { get; private set; } = default!;
+    public DateTime OccurredAtUtc { get; private set; }
+    public DateTime? ProcessedAtUtc { get; private set; }
+    public int RetryCount { get; private set; }
+    public string? ErrorMessage { get; private set; }
+
+    private OutboxMessage() { } // EF Core constructor
+
+    public OutboxMessage(Guid id, Guid tenantId, string eventType, string payload, DateTime occurredAtUtc)
+    {
+        Id = id;
+        TenantId = tenantId;
+        EventType = eventType;
+        Payload = payload;
+        OccurredAtUtc = occurredAtUtc;
+        RetryCount = 0;
+    }
+
+    public void MarkProcessed()
+    {
+        ProcessedAtUtc = DateTime.UtcNow;
+        ErrorMessage = null;
+    }
+
+    public void RecordError(string error)
+    {
+        RetryCount++;
+        ErrorMessage = error;
+    }
+}
+```
+
+```csharp
+namespace FidelHub.Shared.Infrastructure.Data.Configurations;
+
+using FidelHub.Shared.Kernel;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+public class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage>
+{
+    public void Configure(EntityTypeBuilder<OutboxMessage> builder)
+    {
+        builder.ToTable("outbox_messages", "integration");
+        builder.HasKey(o => o.Id);
+
+        builder.Property(o => o.TenantId).HasColumnName("tenant_id").IsRequired();
+        builder.Property(o => o.EventType).HasColumnName("event_type").HasMaxLength(150).IsRequired();
+        builder.Property(o => o.Payload).HasColumnName("payload").HasColumnType("jsonb").IsRequired();
+        builder.Property(o => o.OccurredAtUtc).HasColumnName("occurred_at").IsRequired();
+        builder.Property(o => o.ProcessedAtUtc).HasColumnName("processed_at");
+        builder.Property(o => o.RetryCount).HasColumnName("retry_count").HasDefaultValue(0);
+        builder.Property(o => o.ErrorMessage).HasColumnName("error_message");
+
+        builder.HasIndex(o => o.OccurredAtUtc)
+            .HasFilter("processed_at IS NULL")
+            .HasDatabaseName("ix_outbox_unprocessed");
+    }
+}
+```
+
+### 5.2 FidelHubDbContext & SaveChanges Interceptor
+
+```csharp
+namespace FidelHub.Shared.Infrastructure.Data;
+
+using System.Text.Json;
+using FidelHub.Shared.Kernel;
+using Microsoft.EntityFrameworkCore;
 
 public class FidelHubDbContext : DbContext
 {
-    private readonly ITenantContext _tenantContext;
+    private readonly ICurrentTenantContext _tenantContext;
 
-    public FidelHubDbContext(DbContextOptions<FidelHubDbContext> options, ITenantContext tenantContext) 
+    public FidelHubDbContext(DbContextOptions<FidelHubDbContext> options, ICurrentTenantContext tenantContext) 
         : base(options)
     {
         _tenantContext = tenantContext;
     }
+
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -310,7 +451,7 @@ public class FidelHubDbContext : DbContext
             if (entry.State == EntityState.Added)
             {
                 entry.Property("CreatedAtUtc").CurrentValue = DateTime.UtcNow;
-                entry.Property("CreatedBy").CurrentValue = _tenantContext.UserId;
+                entry.Property("CreatedBy").CurrentValue = _tenantContext.UserId ?? Guid.Empty;
             }
             else if (entry.State == EntityState.Modified)
             {
@@ -331,7 +472,7 @@ public class FidelHubDbContext : DbContext
             {
                 var outboxMessage = new OutboxMessage(
                     Guid.NewGuid(),
-                    _tenantContext.TenantId,
+                    _tenantContext.TenantId ?? Guid.Empty,
                     domainEvent.GetType().Name,
                     JsonSerializer.Serialize(domainEvent, domainEvent.GetType()),
                     DateTime.UtcNow

@@ -7,13 +7,15 @@
 | **Document ID** | WEB-001 |
 | **Version** | 1.1 (Updated with Approved Ecosystem Libraries) |
 | **Status** | Approved Baseline |
-| **Core Tech Stack** | React 19 + Vite 6 + TypeScript 5 |
-| **UI Components** | shadcn/ui & Radix UI Primitives + Material UI (MUI v6) Theme Tokens |
+| **Core Tech Stack** | React 18 + Vite 5 + TypeScript 5 |
+| **UI Components** | Material UI (MUI v6) Theme Tokens (fidelTheme palette) + shadcn/ui & Radix UI Primitives |
 | **Iconography** | Tabler Icons (`@tabler/icons-react`) |
-| **Form Validation** | Zod + React Hook Form |
-| **Utilities & Dates** | Day.js + Lodash-es |
+| **Form Validation** | Zod (`zod`) + React Hook Form (`react-hook-form`) |
+| **Utilities & Dates** | Day.js (`dayjs`) + Lodash-es (`lodash-es`) |
+| **Command Palette** | cmdk (`cmdk`) |
 | **AI Workflows** | Vercel AI SDK (`ai`) |
-| **State Architecture**| TanStack Query v5 (Server State) + Zustand (Client UI State) |
+| **State Architecture**| TanStack Query v5 (`@tanstack/react-query`) + Zustand (`zustand`) |
+| **Application Telemetry**| Sentry (`@sentry/react`) |
 | **Hosting & Edge CDN**| Vercel Global Edge Network |
 
 ---
@@ -25,7 +27,7 @@ The Fidel Hub Web Portal is designed for school administrators, principals, cash
 ```mermaid
 graph TD
     subgraph Browser Client
-        App["App Root (React 19 + StrictMode)"]
+        App["App Root (React 18 + StrictMode)"]
         Router["React Router v7 (Data Loaders & Route Guards)"]
         Theme["Theme Provider (Brand Tokens & Ethiopic Typography)"]
         
@@ -62,7 +64,7 @@ graph TD
 
 ## 2. Design System & Brand Identity Tokens
 
-The interface implements Fidel Hub's verified brand palette:
+The interface implements Fidel Hub's verified brand palette via Material UI (MUI v6) theme tokens (`fidelTheme`). Components must **never hardcode raw color hex strings**, instead referencing theme tokens (`theme.palette.*`) or CSS variables:
 
 | Token Name | Hex Code | Role in Application |
 | :--- | :--- | :--- |

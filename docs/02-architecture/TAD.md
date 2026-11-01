@@ -1,4 +1,4 @@
-﻿# TECHNICAL ARCHITECTURE DOCUMENT (TAD)
+# TECHNICAL ARCHITECTURE DOCUMENT (TAD)
 
 ## Fidel Hub — School Management SaaS Platform
 
@@ -52,12 +52,12 @@ The architecture must:
 The following stack is the approved technical baseline.
 
 Layer| Technology
-Backend| ASP.NET Core 10 Web API
-Language| C#
+Backend| ASP.NET Core 10 Web API (.NET 10 LTS)
+Language| C# 14 (Target Framework: net10.0)
 ORM| Entity Framework Core 10 (Write Path) + Dapper (Read Path)
-Database provider| Npgsql for EF Core
+Database provider| Npgsql for EF Core (10.x compatible)
 Database| PostgreSQL 16+
-Web frontend| React + TypeScript + Vite
+Web frontend| React 19 + Vite + TypeScript 5
 Mobile application| React Native + Expo
 Offline storage| SQLite (WAL Mode)
 API style| REST
@@ -66,34 +66,41 @@ Authorization| Role-based and permission-based access (ASP.NET Core Policies)
 Database isolation| PostgreSQL Row-Level Security (RLS)
 Background processing| .NET Hosted Services / Quartz.NET
 API documentation| OpenAPI / Swagger
-Architecture| Modular monolith (Vertical Slices + CQRS)
-UI Component Primitives| shadcn/ui & Radix UI accessible patterns
+Architecture| Modular monolith (Per-Module Vertical Slices + CQRS)
+UI Component Primitives| Material UI (MUI v6) Theme Tokens (fidelTheme palette) + shadcn/ui & Radix UI Primitives
 Vector Iconography| Tabler Icons (@tabler/icons-react)
 Client Validation| Zod runtime schema validation
+Form Management| React Hook Form (@hookform/resolvers/zod)
+Server State Management| TanStack Query (@tanstack/react-query)
+Client State Management| Zustand
 AI & Natural Language| Vercel AI SDK (Question authoring, rubric grading, Ctrl+K)
 Date & Time Utilities| Day.js
 Utility Functions| Lodash-es (tree-shakeable utilities)
+Command Palette| cmdk (Accessible keyboard navigation)
 Local EVS / Auth ORM| Drizzle ORM (Better Auth & Local Exam Venue Server SQLite)
 Cloud Hosting & Edge CDN| Vercel (Web Portal Edge CDN) + Managed PostgreSQL
 Transactional Email| Resend (React Email Templates)
-Application Telemetry| Sentry (Full-Stack Crash & Error Tracing)
+Application Telemetry| Sentry (@sentry/react & Sentry .NET SDK)
 
-Package versions must remain compatible with the selected .NET and EF Core major versions. The Npgsql provider version must be verified against the selected EF Core release before implementation.
+Package versions must remain compatible with the selected .NET 10 and EF Core 10 LTS versions (`Microsoft.AspNetCore.*: 10.x`, `Microsoft.EntityFrameworkCore.*: 10.x`). Developers must install .NET 10 SDK or higher. Container base image directives are standardized on `mcr.microsoft.com/dotnet/aspnet:10.0` (runtime) and `mcr.microsoft.com/dotnet/sdk:10.0` (SDK).
 
 2.1 Approved Auxiliary Ecosystem Technologies
 
-The following 10 ecosystem technologies extend and complement the core architecture without conflicting with the ASP.NET Core, EF Core, or PostgreSQL foundations:
+The following 10 ecosystem technologies extend and complement the core architecture without conflicting with the ASP.NET Core 10, EF Core 10, or PostgreSQL foundations:
 
-1. **shadcn/ui**: Accessible, copy-paste headless UI component primitives (command palette cmdk, slide-over sheets, high-density data filters, accessible dialogs) styled with Fidel Hub brand design tokens (#1B5E3F and #E0A526).
+1. **Material UI (MUI v6) Theme Tokens & shadcn/ui**: Accessible UI component primitives styled with Fidel Hub brand design tokens (`fidelTheme` palette: primary `#1B5E3F`, secondary `#E0A526`, background `#FAF7F0`, text `#1F2933`). Components never use hardcoded hex colors.
 2. **Tabler Icons (@tabler/icons-react)**: Unified, lightweight vector iconography across all 15 functional modules in web and mobile applications.
-3. **Vercel AI SDK**: Powers AI-assisted workflows: generating question banks from Ethiopian curriculum PDFs, assisting teachers with rubric-based subjective essay scoring, and parsing natural language queries in the global Ctrl+K command bar.
-4. **Zod**: Type-safe runtime schema validation for frontend forms, API response assertions, and Local Venue Server inbound sync packet verification.
-5. **Day.js**: Ultralight (2KB) date parsing, relative time formatting ("marked absent 10 min ago"), and sub-second countdown timer calculations in the CBT runner.
-6. **Lodash-es**: Tree-shakeable utility functions for debouncing live searches, throttling CBT autosave heartbeats, and immutable manipulation of nested timetable grids.
-7. **Drizzle ORM**: Powers the database layer of the dedicated Better Auth microservice and provides type-safe, sub-millisecond SQLite WAL queries in the Local Exam Venue Server (EVS).
-8. **Vercel**: Edge CDN hosting platform for the React Web Portal and serverless runtime for Better Auth, providing global asset caching and automated preview deployments.
-9. **Resend**: Transactional email service using React Email templates for delivering monthly fee invoices, official receipt PDFs, report cards, and 2FA authentication alerts to parents and staff.
-10. **Sentry**: Distributed error monitoring and performance profiling across ASP.NET Core backend, React web portal, and Expo mobile apps, providing real-time alerts for CBT examination workstation crashes.
+3. **Zod**: Type-safe runtime schema validation for frontend forms, API response assertions, and Local Venue Server inbound sync packet verification.
+4. **React Hook Form**: Performant form management paired with `@hookform/resolvers/zod` for zero-re-render client validation.
+5. **TanStack Query (@tanstack/react-query)**: Server state management and caching with 5-minute staleTime defaults and optimistic updates.
+6. **Zustand**: Minimalist client UI and session state management (`useAuthStore`, `useBranchStore`, `useUIStore`).
+7. **Day.js**: Ultralight (2KB) date parsing, relative time formatting ("marked absent 10 min ago"), and sub-second countdown timer calculations in the CBT runner.
+8. **Lodash-es**: Tree-shakeable utility functions for debouncing live searches, throttling CBT autosave heartbeats, and immutable manipulation of nested timetable grids.
+9. **cmdk**: Accessible Command Palette enabling `Ctrl+K` global keyboard navigation and quick switching by admission number or action.
+10. **Vercel AI SDK**: Powers AI-assisted workflows: generating question banks from Ethiopian curriculum PDFs, assisting teachers with rubric-based subjective essay scoring, and parsing natural language queries in the global command bar.
+11. **Drizzle ORM**: Powers the database layer of the dedicated Better Auth microservice and provides type-safe, sub-millisecond SQLite WAL queries in the Local Exam Venue Server (EVS).
+12. **Resend**: Transactional email service using React Email templates for delivering monthly fee invoices, official receipt PDFs, report cards, and 2FA authentication alerts to parents and staff.
+13. **Sentry (@sentry/react & .NET SDK)**: Distributed error monitoring and performance profiling across ASP.NET Core backend, React web portal, and Expo mobile apps, providing real-time alerts for CBT examination workstation crashes.
 
 3. High-Level System Architecture
 
@@ -124,7 +131,7 @@ Both client applications communicate with the same backend API. The backend cont
           |                 |                  |
      PLATFORM          ACADEMIC             FINANCE
      MANAGEMENT        MANAGEMENT           MANAGEMENT
-[01/11/2026 12:33 PM] Yo: |                 |                  |
+          |                 |                  |
      TENANT/BRANCH      STUDENTS             FEES
      USERS              ADMISSIONS           INVOICES
      ACCESS             ENROLLMENT           PAYMENTS
@@ -201,68 +208,70 @@ Infrastructure Layer
 
 Not every operation needs a repository abstraction. Use EF Core directly through well-defined application services where that keeps the implementation simpler.
 
-4.3 Proposed Backend Solution Structure
+4.3 Solution Structure (Per-Module Vertical Slice Layout)
 
-school-management/
-|
-+-- backend/
-|   |
-|   +-- SchoolManagement.sln
-|   |
-|   +-- src/
-|   |   |
-|   |   +-- SchoolManagement.Api/
-|   |   |   +-- Controllers/
-|   |   |   +-- Middleware/
-|   |   |   +-- Filters/
-|   |   |   +-- Configuration/
-|   |   |   +-- Program.cs
-|   |   |
-|   |   +-- BuildingBlocks/
-|   |   |   +-- Authentication/
-|   |   |   +-- Authorization/
-|   |   |   +-- TenantContext/
-|   |   |   +-- BranchContext/
-|   |   |   +-- Persistence/
-|   |   |   +-- Auditing/
-|   |   |   +-- Messaging/
-|   |   |   +-- Validation/
-|   |   |   +-- Exceptions/
-|   |   |
-|   |   +-- Modules/
-|   |       |
-|   |       +-- Identity/
-|   |       +-- PlatformManagement/
-|   |       +-- TenantManagement/
-|   |       +-- BranchManagement/
-|   |       +-- SchoolConfiguration/
-|   |       +-- StudentManagement/
-|   |       +-- Admissions/
-|   |       +-- AcademicManagement/
-|   |       +-- StaffManagement/
-|   |       +-- Attendance/
-|   |       +-- Examination/
-|   |       +-- FeeManagement/
-|   |       +-- Reporting/
-|   |       +-- Audit/
-|   |
-|   +-- tests/
-|       +-- UnitTests/
-|       +-- IntegrationTests/
-|       +-- ArchitectureTests/
-|       +-- ApiTests/
-|
-+-- frontend/
-|
-+-- mobile/
-|
-+-- database/
-|
-+-- documentation/
+```text
+Fidel Hub/
+├── FidelHub.sln                             # Root solution binding all 15 backend projects & tests
+├── backend/
+│   ├── FidelHub.Api/                        # REST API Host, Swagger, RLS Interceptors, Middleware
+│   │   ├── Controllers/
+│   │   ├── Middleware/                      # TenantResolutionMiddleware, RLSContextMiddleware
+│   │   ├── Filters/
+│   │   └── Program.cs
+│   │
+│   ├── FidelHub.Shared/                     # Shared Kernel (Primitives, Interfaces, Result<T>, Outbox)
+│   │   ├── Abstractions/                    # ITenantScoped, IBranchScoped, IAuditableEntity, BaseEntity<TId>
+│   │   ├── Context/                         # ICurrentTenantContext
+│   │   ├── DomainEvents/                    # IDomainEvent, DomainEventNotification
+│   │   └── Results/                         # Result<T>, Error, DomainException
+│   │
+│   ├── FidelHub.Worker/                     # Background Quartz.NET engine & Outbox dispatcher
+│   │   ├── Jobs/                            # OutboxProcessorJob, TruancyAlertJob, ReportCompileJob
+│   │   └── Program.cs
+│   │
+│   ├── Modules/                             # Per-Module Vertical Slices (All 15 Domain Modules)
+│   │   ├── FidelHub.Modules.Tenants/        # Organization provisioning, branches, school configurations
+│   │   ├── FidelHub.Modules.Identity/       # JWT claims validation, RBAC/PBAC policies, branch permissions
+│   │   ├── FidelHub.Modules.Students/       # Student master SIS biodata, Ethiopian names, guardians
+│   │   ├── FidelHub.Modules.Admissions/     # Online intake, document verification, enrollment handover
+│   │   ├── FidelHub.Modules.Academics/      # Dual calendars (EC/GC), terms, class levels, timetables, lesson plans
+│   │   ├── FidelHub.Modules.Attendance/     # Homeroom daily & period-by-period attendance tracking
+│   │   ├── FidelHub.Modules.Examinations/   # Question Bank (KaTeX), CBT papers, offline sync ingestion
+│   │   ├── FidelHub.Modules.Grading/        # Continuous Assessment, spreadsheet marksheet, term report cards
+│   │   ├── FidelHub.Modules.Finance/        # Fee structures, snapshot agreements, invoices, payments, receipts
+│   │   ├── FidelHub.Modules.Communication/  # SMS gateway (Ethio Telecom/Telebirr), system announcements
+│   │   ├── FidelHub.Modules.Reporting/      # Transcripts, Ge'ez Amharic PDF report cards, MoE statistics
+│   │   ├── FidelHub.Modules.Library/        # Physical & digital cataloging, circulation, overdue fine engine (Phase 2)
+│   │   ├── FidelHub.Modules.Facilities/     # Laboratory apparatus, chemical stocks, room/lab bookings (Phase 2)
+│   │   ├── FidelHub.Modules.Health/         # Student medical profiles, clinic dispensary visits, incident logs (Phase 2)
+│   │   ├── FidelHub.Modules.Audit/          # Tamper-evident grade modifications & administrative activity logs (Phase 2)
+│   │   └── FidelHub.Modules.Platform/       # Platform SuperAdmin SaaS CRM, subscription tiers, student headcount quotas (Phase 2)
+│   │
+│   └── tests/
+│       ├── FidelHub.ArchitectureTests/      # NetArchTest enforcing modular boundaries & isolation
+│       ├── FidelHub.UnitTests/              # Domain invariants, calculation logic, value objects
+│       └── FidelHub.IntegrationTests/       # Testcontainers PostgreSQL RLS integration tests
+│
+├── frontend/
+│   ├── web/                                 # React 18 + Vite 5 + TypeScript 5 + Material UI (MUI v6)
+│   │   ├── public/assets/                   # Fidel Hub brand SVGs & domain icons
+│   │   └── src/theme/                       # fidelTheme palette tokens (#1B5E3F, #E0A526)
+│   └── mobile/                              # React Native + Expo + SQLite (WAL mode)
+│
+├── scripts/
+│   └── local-exam-server/                   # Standalone Node.js + SQLite WAL Local Exam Venue Server (EVS)
+│
+├── infrastructure/
+│   ├── docker/                              # docker-compose.yml (PostgreSQL 16+, Redis, pgAdmin)
+│   └── database/                            # PostgreSQL RLS initialization scripts & migrations
+│
+└── docs/                                    # Complete Platform Documentation Suite (01 to 07)
+```
 
-Each module may contain its own:
+Each module encapsulates its domain logic, application use cases, persistence mapping, and internal contracts:
 
-ModuleName/
+FidelHub.Modules.<ModuleName>/
     Domain/
     Application/
     Infrastructure/

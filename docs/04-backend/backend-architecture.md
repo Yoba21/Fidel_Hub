@@ -1,4 +1,4 @@
-﻿# BACKEND ARCHITECTURE SPECIFICATION
+# BACKEND ARCHITECTURE SPECIFICATION
 
 ## Fidel Hub — ASP.NET Core Modular Monolith Architecture
 
@@ -7,7 +7,10 @@
 | **Document ID** | BDA-001 |
 | **Version** | 1.0 |
 | **Status** | Approved Baseline |
-| **Framework** | ASP.NET Core 8 / .NET 10 |
+| **Framework** | .NET 10 LTS (`net10.0`) / ASP.NET Core 10 / EF Core 10 |
+| **Prerequisites** | Developers must install .NET 10 SDK or higher. |
+| **Package Dependencies** | `Microsoft.AspNetCore.*: 10.x`, `Microsoft.EntityFrameworkCore.*: 10.x` |
+| **Container Images** | `mcr.microsoft.com/dotnet/aspnet:10.0`, `mcr.microsoft.com/dotnet/sdk:10.0` |
 | **Architecture Style** | Domain-Driven Modular Monolith (Vertical Slices + CQRS) |
 | **Data Access** | EF Core 10 (Write Path) + Dapper (High-Throughput Read Path) |
 
@@ -68,46 +71,56 @@ graph TD
 
 ## 2. Solution & Project Structure
 
-The codebase is organized into Clean Architecture layers partitioned across domain vertical slices:
+The codebase is standardized on a **Per-Module Vertical Slice Project Layout** using the unified **`FidelHub.*`** naming convention (.NET 10 LTS):
 
 ```
-src/backend/
+backend/
+├── FidelHub.sln                             # Unified Visual Studio / dotnet Solution
 │
-├── FidelHub.Domain/                 # Pure domain layer (zero external framework dependencies)
-│   ├── Common/                      # BaseEntity, ValueObjects, DomainEvents, TenantInterfaces
-│   ├── Organization/
-│   ├── Students/
-│   ├── Academics/
-│   ├── Attendance/
-│   ├── Examinations/                # Question Bank, Papers, CBT Sessions, Psychometrics
-│   ├── Finance/                     # FeeStructures, Snapshots, Invoices, Receipts (No GL)
-│   ├── Library/                     # Books, Loans, Overdue Fines
-│   ├── Facilities/                  # Lab Equipment, Reservations, Incidents
-│   ├── Health/                      # Health Profiles, Clinic Dispensary Visits
-│   └── Audit/                       # Teacher Grade Modification Telemetry
+├── FidelHub.Api/                            # ASP.NET Core 10 Web API Host Process
+│   ├── Controllers/ / Endpoints/            # Thin HTTP route mappings & Swagger metadata
+│   ├── Middlewares/                         # TenantBranchResolutionMiddleware, ProblemDetailsMiddleware
+│   ├── Extensions/                          # Authentication, OpenTelemetry, Sentry, RateLimiter setup
+│   └── Program.cs                           # App startup, DI composition root, module discovery
 │
-├── FidelHub.Application/            # Application business logic (CQRS Slices)
-│   ├── Common/                      # Behaviors (Validation, Logging, Performance, Transaction)
-│   ├── Features/
-│   │   ├── Admissions/              # SubmitApplicationCommand, ApproveApplicationCommand
-│   │   ├── Examinations/            # AssembleExamPaperCommand, IngestCbtBatchCommand
-│   │   ├── Finance/                 # PostInvoiceCommand, CollectPaymentCommand
-│   │   ├── Library/                 # CheckoutBookLoanCommand, ReturnBookCommand
-│   │   ├── Health/                  # RecordClinicVisitCommand
-│   │   └── Grades/                  # UpdateMarksheetEntryCommand
-│   └── Interfaces/                  # IDbConnectionFactory, ICurrentTenantContext, ISmsService
+├── FidelHub.Shared/                         # Shared Kernel & Cross-Cutting Infrastructure
+│   ├── Kernel/                              # ITenantScoped, IBranchScoped, IAuditableEntity, BaseEntity<TId>
+│   ├── Context/                             # ICurrentTenantContext & ambient resolution
+│   ├── Events/                              # IDomainEvent, IDomainEventHandler, INotification
+│   ├── Primitives/                          # Result<T>, Error, ValueObject, StronglyTypedId
+│   ├── Infrastructure/
+│   │   ├── Data/                            # Multi-Tenant Connection Interceptor, Npgsql DataSource
+│   │   ├── Outbox/                          # OutboxMessage entity and EF Core configuration
+│   │   └── Caching/                         # Redis cache service & distributed locks
+│   └── Behaviors/                           # LoggingBehavior, ValidationBehavior, TransactionBehavior
 │
-├── FidelHub.Infrastructure/         # External integrations & database persistence
-│   ├── Data/                        # FidelHubDbContext, Configurations, Migrations, Interceptors
-│   ├── Dapper/                      # SqlDbConnectionFactory, Custom Type Handlers
-│   ├── Outbox/                      # OutboxProcessorBackgroundService
-│   ├── Notifications/               # EthioTelecomSmsClient, TelebirrSmsGateway
-│   └── Caching/                     # RedisDistributedCacheService
+├── FidelHub.Worker/                         # Background Quartz.NET Hosted Service
+│   ├── Outbox/                              # OutboxProcessorBackgroundService
+│   ├── Sync/                                # CBT Offline Sync Batch Ingestion Worker
+│   └── Program.cs                           # Worker DI composition & background job scheduling
 │
-└── FidelHub.Web/                    # Presentation host (ASP.NET Core Web API)
-    ├── Controllers/                 # REST API Controllers (Thin API endpoints delegating to MediatR)
-    ├── Middlewares/                 # TenantBranchResolutionMiddleware, ProblemDetailsMiddleware
-    └── Extensions/                  # ServiceCollection extensions, JWT configuration
+├── Modules/                                 # 15 Isolated Domain Modules (Vertical Slices)
+│   ├── FidelHub.Modules.Tenants/            # 01: School organizations, branches, calendar
+│   ├── FidelHub.Modules.Identity/           # 02: Better Auth JWT consumer, user branch access, PBAC
+│   ├── FidelHub.Modules.Students/           # 03: Tenant-owned student biodata, guardians, documents
+│   ├── FidelHub.Modules.Admissions/         # 03: Intake applications, evaluation, enrollment
+│   ├── FidelHub.Modules.Academics/          # 04: Grade levels, sections, timetables, lesson plans, traits
+│   ├── FidelHub.Modules.Attendance/         # 05: Daily and period student attendance rosters
+│   ├── FidelHub.Modules.Examinations/       # 06: Question Bank, CBT papers, offline sync ingestion
+│   ├── FidelHub.Modules.Grading/            # 07: Marksheets, continuous assessment, report card generation
+│   ├── FidelHub.Modules.Finance/            # 08: Fee structures, student snapshots, invoices, payments (No GL)
+│   ├── FidelHub.Modules.Communication/      # 09: SMS/Push notifications, Ethio Telecom gateway, Resend
+│   ├── FidelHub.Modules.Reporting/          # 10: Executive dashboards, MOE compliance transcripts
+│   ├── FidelHub.Modules.Library/            # 11: (Phase 2) Books, physical catalog, loans, overdue fines
+│   ├── FidelHub.Modules.Facilities/         # 12: (Phase 2) Lab apparatus, ICT equipment, bookings, safety
+│   ├── FidelHub.Modules.Health/             # 13: (Phase 2) Student clinic dispensary, vitals, triage visits
+│   ├── FidelHub.Modules.Audit/              # 14: (Phase 2) Teacher grade alteration audit telemetry
+│   └── FidelHub.Modules.Platform/           # 15: (Phase 2) Multi-tenant SaaS provisioning, quotas
+│
+└── tests/
+    ├── FidelHub.ArchitectureTests/          # NetArchTest enforcing vertical slice boundaries & no cyclic refs
+    ├── FidelHub.UnitTests/                  # Domain invariant unit tests (Value objects, entities)
+    └── FidelHub.IntegrationTests/           # WebApplicationFactory integration tests with Testcontainers PG
 ```
 
 ---
@@ -152,7 +165,7 @@ sequenceDiagram
 To ensure 100% reliable event publishing without distributed transaction two-phase commit overhead, state mutations and event publishing share a single database transaction:
 
 ```csharp
-namespace FidelHub.Infrastructure.Outbox;
+namespace FidelHub.Worker.Outbox;
 
 public class OutboxProcessorBackgroundService : BackgroundService
 {
@@ -260,8 +273,8 @@ services.AddResiliencePipeline("sms-gateway-pipeline", builder =>
 
 Transactional emails (fee payment receipts, invoice statements, and term report cards) are processed via **Resend** using strongly-typed React Email components:
 
-`csharp
-namespace FidelHub.Infrastructure.Notifications;
+```csharp
+namespace FidelHub.Modules.Communication.Infrastructure;
 
 public class ResendEmailService : IEmailService
 {
@@ -296,7 +309,7 @@ public class ResendEmailService : IEmailService
         response.EnsureSuccessStatusCode();
     }
 }
-`
+```
 
 ---
 
@@ -304,7 +317,7 @@ public class ResendEmailService : IEmailService
 
 Both the ASP.NET Core API host and background worker services integrate **Sentry** for real-time observability:
 
-`csharp
+```csharp
 // Program.cs configuration
 builder.WebHost.UseSentry(options =>
 {
@@ -315,9 +328,9 @@ builder.WebHost.UseSentry(options =>
         scope.SetTag("service", "fidel-hub-api");
     });
 });
-`
+```
 
-* **Tenant-Scoped Tracing**: Interceptors enrich Sentry scopes with 	enant_id and ranch_id on every HTTP request, allowing instant debugging of tenant-specific issues without leaking PII.
+* **Tenant-Scoped Tracing**: Interceptors enrich Sentry scopes with `tenant_id` and `branch_id` on every HTTP request, allowing instant debugging of tenant-specific issues without leaking PII.
 * **Database Query Performance**: Npgsql integration automatically logs slow queries (> 200ms) directly to Sentry Performance dashboards.
 
 ---

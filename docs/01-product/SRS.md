@@ -8,7 +8,7 @@
 | **Version** | 1.1 (Refined & Expanded with Complete Operational Modules) |
 | **Product** | Fidel Hub (ፊ) |
 | **Market Focus** | K–12 Multi-Tenant Institutions (Ethiopia & East Africa) |
-| **Technical Stack** | ASP.NET Core Modular Monolith, PostgreSQL (RLS), Better Auth, React (Vite), React Native (Expo) |
+| **Technical Stack** | .NET 8 LTS / ASP.NET Core 8 Modular Monolith, PostgreSQL 16+ (RLS), Better Auth, React 18 (Vite 5), React Native (Expo) |
 | **Reference Architecture** | PRD-001, TAD-003, DDS-004 & Gila-Schoolmate Functional Architecture |
 
 ---
@@ -18,7 +18,7 @@
 ### 1.1 Purpose
 This Software Requirements Specification (SRS) establishes the complete functional and non-functional requirements for **Fidel Hub**, an enterprise-grade multi-tenant School Management SaaS platform. 
 
-The feature specifications in this document incorporate end-to-end institutional workflows—including Student Information Systems (SIS), dual Ethiopian/Gregorian calendars, classroom scheduling, continuous assessment, offline-first Computer-Based Testing (CBT), student fee billing, library circulation, laboratory equipment management, student clinic dispensary, and teacher access auditing. All capabilities are architected to run on Fidel Hub's high-integrity stack: **ASP.NET Core Modular Monolith**, **PostgreSQL with kernel-level Row-Level Security (RLS)**, **Better Auth** authentication service, **React (Vite)** for web administration, and **React Native (Expo)** with offline **SQLite WAL** synchronization for resilient Computer-Based Testing (CBT).
+The feature specifications in this document incorporate end-to-end institutional workflows—including Student Information Systems (SIS), dual Ethiopian/Gregorian calendars, classroom scheduling, continuous assessment, offline-first Computer-Based Testing (CBT), student fee billing, library circulation, laboratory equipment management, student clinic dispensary, and teacher access auditing. All capabilities are architected to run on Fidel Hub's high-integrity stack: **.NET 8 LTS / ASP.NET Core 8 Modular Monolith**, **PostgreSQL 16+ with kernel-level Row-Level Security (RLS)**, **Better Auth** authentication service, **React 18 (Vite 5)** for web administration, and **React Native (Expo)** with offline **SQLite WAL** synchronization for resilient Computer-Based Testing (CBT).
 
 ### 1.2 Core Product Scope & Non-Goals
 
@@ -314,7 +314,7 @@ The platform enforces a strict multi-tier role hierarchy powered by Better Auth 
 
 ---
 
-### Module 11: Library & Media Resource Management
+### Module 11: Library & Media Resource Management (Phase 2 / P2 Expanded Institutional Module)
 *(Derived from Gila-Schoolmate `library.tsx`)*
 
 - **FR-LIB-001 [Physical & Digital Cataloging]**:
@@ -330,7 +330,7 @@ The platform enforces a strict multi-tier role hierarchy powered by Better Auth 
 
 ---
 
-### Module 12: Laboratory & Specialized ICT Facility Management
+### Module 12: Laboratory & Specialized ICT Facility Management (Phase 2 / P2 Expanded Institutional Module)
 *(Derived from Gila-Schoolmate `lab.tsx`)*
 
 - **FR-LAB-001 [Lab Asset & Consumable Registry]**:
@@ -346,7 +346,7 @@ The platform enforces a strict multi-tier role hierarchy powered by Better Auth 
 
 ---
 
-### Module 13: Student Health, Dispensary Clinic & Emergency Care
+### Module 13: Student Health, Dispensary Clinic & Emergency Care (Phase 2 / P2 Expanded Institutional Module)
 *(Derived from Gila-Schoolmate `health.tsx`)*
 
 - **FR-HLT-001 [Student Health & Emergency Profiles]**:
@@ -359,7 +359,7 @@ The platform enforces a strict multi-tier role hierarchy powered by Better Auth 
 
 ---
 
-### Module 14: Staff/Teacher Grade Modification & Security Audit Trail
+### Module 14: Staff/Teacher Grade Modification & Security Audit Trail (Phase 2 / P2 Expanded Institutional Module)
 *(Derived from Gila-Schoolmate `teacher-access-audit.tsx`)*
 
 - **FR-AUD-001 [Fine-Grained Grade Modification Auditing]**:
@@ -371,7 +371,7 @@ The platform enforces a strict multi-tier role hierarchy powered by Better Auth 
 
 ---
 
-### Module 15: Platform SuperAdmin Management & Subscription Quotas
+### Module 15: Platform SuperAdmin Management & Subscription Quotas (Phase 2 / P2 Expanded Institutional Module)
 *(Derived from Gila-Schoolmate `platform-admin.tsx` and subscription schema)*
 
 - **FR-PLT-001 [School Tenant Lifecycle & Pipeline CRM]**:
@@ -413,11 +413,11 @@ The platform enforces a strict multi-tier role hierarchy powered by Better Auth 
 | `academics.tsx` & `classes.tsx` | §5.4 & §5.5 Academic Setup | Dual Calendar (EC/GC), sections, timetables, and lesson plans |
 | `traits-report.tsx` | §5.11 Holistic Evaluation | Affective and psychomotor behavioral traits scoring |
 | `students.tsx` & `parents.tsx` | §5.2 & §5.3 SIS & Guardians | Multi-branch student lifecycle with guardian relationship flags |
-| `library.tsx` | Enhanced Operational Capability | Physical cataloging, digital e-books, lending, and overdue fine engine |
-| `lab.tsx` | Enhanced Operational Capability | Laboratory apparatus registry, chemical stocks, and room reservation |
-| `health.tsx` | Enhanced Student Care | Medical profiles, clinic dispensary visits, and instant guardian SMS alerts |
-| `teacher-access-audit.tsx` | High-Integrity Security | Tamper-proof grade modification audit logs and deadline locks |
+| `library.tsx` | Enhanced Operational Capability (Phase 2 / P2) | Physical cataloging, digital e-books, lending, and overdue fine engine |
+| `lab.tsx` | Enhanced Operational Capability (Phase 2 / P2) | Laboratory apparatus registry, chemical stocks, and room reservation |
+| `health.tsx` | Enhanced Student Care (Phase 2 / P2) | Medical profiles, clinic dispensary visits, and instant guardian SMS alerts |
+| `teacher-access-audit.tsx` | High-Integrity Security (Phase 2 / P2) | Tamper-proof grade modification audit logs and deadline locks |
 | `add_nursery_activity_columns.sql`| Early Childhood Tracking | Nursery & Kindergarten daily feeding, napping, and milestone logging |
-| `platform-admin.tsx` / `phase7_subscription_billing.sql` | Multi-Tenant Platform Operations | Tenant lifecycle CRM, student count quota enforcement & backup exports |
+| `platform-admin.tsx` / `phase7_subscription_billing.sql` | Multi-Tenant Platform Operations (Phase 2 / P2) | Tenant lifecycle CRM, student count quota enforcement & backup exports |
 | Supabase Auth / Roles | §5.1 & §5.7 Identity & RBAC | Dedicated **Better Auth** service + ASP.NET Core `JwtBearer` validation |
 | Supabase RLS | §4 & §5 Multi-Tenancy | Native PostgreSQL RLS with connection session interceptors |

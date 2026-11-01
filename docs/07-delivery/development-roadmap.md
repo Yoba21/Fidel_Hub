@@ -20,7 +20,7 @@ gantt
     dateFormat  YYYY-MM-DD
     section Phase 1: Core Foundation
     Platform Multi-Tenancy & Better Auth        :done, p1_1, 2026-11-01, 2026-11-20
-    PostgreSQL RLS & EF Core 10 Setup           :done, p1_2, 2026-11-05, 2026-11-25
+    PostgreSQL RLS & EF Core 8 Setup            :done, p1_2, 2026-11-05, 2026-11-25
     SIS, Admissions & Dual Calendar             :active, p1_3, 2026-11-20, 2026-12-15
     
     section Phase 2: Operations & Finance
@@ -62,9 +62,9 @@ gantt
 * Local Exam Venue Server (EVS) engine supporting **100% offline LAN test delivery with SQLite WAL autosave**.
 * Spreadsheet-style continuous assessment marksheet and term gradebook lock enforcement.
 * Batch compilation of dual-script PDF report cards featuring Ge'ez Amharic typography and verification QR codes.
-* Practical auxiliary modules: Library circulation, Lab safety booking, Student clinic dispensary, and Teacher mark audit logs.
+* Practical auxiliary modules (Phase 2 / P2 Expanded): Library circulation (Module 11), Lab safety booking (Module 12), Student clinic dispensary (Module 13), and Teacher mark audit logs (Module 14).
 
 ### Phase 4: Mobile Ecosystem, Pilot Launch & National Bureau Exports (Weeks 19–24)
 * React Native (Expo) apps for Parents (attendance alerts, fee payment, report cards) and Teachers (attendance companion).
 * Pilot deployment across 5 premier partner schools in Addis Ababa and regional hubs.
-* Ministry of Education compliance exports and enterprise SaaS subscription billing.
+* Ministry of Education compliance exports and enterprise SaaS subscription billing & quota enforcement (Platform SuperAdmin Module 15).

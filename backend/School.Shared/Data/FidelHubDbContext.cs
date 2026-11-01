@@ -123,7 +123,7 @@ public class FidelHubDbContext : DbContext
             if (entry.State == EntityState.Added && _tenantContext.TenantId.HasValue)
             {
                 var tenantProp = entry.Property(nameof(ITenantScoped.TenantId));
-                if ((Guid)tenantProp.CurrentValue == Guid.Empty)
+                if (tenantProp.CurrentValue == null || (Guid)tenantProp.CurrentValue == Guid.Empty)
                 {
                     tenantProp.CurrentValue = _tenantContext.TenantId.Value;
                 }

@@ -75,7 +75,7 @@ Parents with multiple children enrolled in Fidel Hub schools switch between chil
 ### 3.1 1-Tap Attendance Taking
 * Optimized for mobile phones and classroom tablets.
 * Defaults all enrolled students to "Present"; teachers swipe left on absent students and toggle "Unexcused" or "Late".
-* Operates offline if school Wi-Fi is temporarily interrupted; sessions queue in Expo SQLite and sync automatically upon reconnection.
+* Operates online in the initial release; requires network connectivity to submit attendance directly to the API. (Offline attendance caching and deferred SQLite sync is scheduled for Phase 2).
 
 ### 3.2 Daily Schedule & Lesson Tracking
 * Displays the teacher's current daily period schedule, classroom numbers, and active curriculum syllabus targets.
@@ -86,6 +86,8 @@ Parents with multiple children enrolled in Fidel Hub schools switch between chil
 ---
 
 ## 4. Local Persistence & Offline Sync Engine
+
+In the initial release, local persistence on mobile devices is used strictly for read caching (student rosters and class timetables) to deliver instantaneous screen transitions. (Offline write-queueing for attendance is deferred to Phase 2, while offline mutation synchronization is dedicated strictly to the CBT Exam Engine via the Local Exam Venue Server).
 
 ```typescript
 import * as SQLite from 'expo-sqlite';
@@ -106,13 +108,7 @@ export const initLocalMobileDb = async () => {
       section_name TEXT NOT NULL
     );
 
-    CREATE TABLE IF NOT EXISTS pending_attendance_sessions (
-      id TEXT PRIMARY KEY,
-      section_id TEXT NOT NULL,
-      date TEXT NOT NULL,
-      roster_json TEXT NOT NULL,
-      sync_status TEXT DEFAULT 'PENDING'
-    );
+    -- NOTE: pending_attendance_sessions write-queueing is scheduled for Phase 2 implementation.
   `);
   
   return db;

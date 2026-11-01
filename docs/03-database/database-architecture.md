@@ -9,7 +9,7 @@
 | **Status** | Approved Baseline |
 | **Database Engine** | PostgreSQL 16+ with Native Row-Level Security (RLS) |
 | **Connection Pooler** | PgBouncer (Transaction Pooling Mode) |
-| **ORM & Data Access** | Entity Framework Core 10 + Dapper for High-Throughput Read Paths |
+| **ORM & Data Access** | Entity Framework Core 8 (.NET 8 LTS) + Dapper for High-Throughput Read Paths |
 
 ---
 
@@ -71,17 +71,17 @@ The database is divided into 15 domain schemas to enforce clean boundaries betwe
 | :--- | :--- | :--- |
 | `platform` | SaaS operations, school tenant subscriptions, quotas | `tenants`, `tenant_settings`, `tenant_quotas`, `tenant_backups` |
 | `identity` | User identity credentials, branch mappings, RBAC roles | `users`, `user_branch_access`, `roles`, `user_roles` |
-| `school` | Physical branch campuses, academic years, calendars | `branches`, `academic_years`, `academic_terms` |
+| `school` | Physical branch campuses, academic calendars, branch settings | `branches`, `branch_settings`, `academic_calendars` |
 | `students` | Student demographic master records, guardian mappings | `students`, `guardians`, `student_guardians` |
 | `admissions` | Prospective student applications and intake screening | `admission_applications`, `application_documents` |
-| `academic` | Class levels, streams, subjects, timetables, lesson plans | `classes`, `sections`, `subjects`, `timetables`, `lesson_plans` |
-| `staff` | Academic staff profiles and subject assignments | `staff`, `teacher_subjects`, `qualifications` |
+| `academic` | Class levels, streams, subjects, timetables, lesson plans | `academic_years`, `terms`, `classes`, `sections`, `subjects`, `student_enrollments`, `timetables`, `lesson_plans` |
+| `staff` | Academic staff profiles and subject assignments | `staff_members`, `teacher_subjects`, `qualifications` |
 | `attendance` | Daily homeroom and period-by-period class attendance | `attendance_sessions`, `attendance_records` |
 | `examinations`| Question bank, exam papers, offline CBT sessions | `question_banks`, `questions`, `exam_papers`, `cbt_sessions` |
 | `finance` | Student fees, snapshots, invoices, payment receipts | `fee_structures`, `fee_snapshots`, `invoices`, `payments`, `receipts` |
 | `library` | Book cataloging, circulation loans, overdue fines | `books`, `book_loans`, `overdue_fines`, `digital_resources` |
 | `facilities` | Lab equipment registry, room booking, incident logs | `equipment`, `lab_bookings`, `incidents` |
-| `health` | Medical profiles, clinic dispensary visits, rest beds | `student_profiles`, `clinic_visits` |
+| `health` | Medical profiles, clinic dispensary visits, rest beds | `student_health_profiles`, `clinic_visits` |
 | `audit` | Append-only system telemetry and grade modification audit | `audit_logs`, `teacher_access_logs` |
 | `integration` | Outbox message broker and offline CBT batch sync tracking | `outbox_messages`, `offline_cbt_sync_batches` |
 
@@ -158,7 +158,7 @@ To avoid B-tree page fragmentation associated with traditional random UUIDv4 ide
 
 ## 5. High-Throughput Read Paths with Dapper
 
-While EF Core 10 is the authoritative write-path ORM (enforcing domain invariants and executing transaction outbox writes), high-throughput reporting and marksheet read operations bypass EF Core change tracking and execute via **Dapper micro-ORM**:
+While EF Core 8 (.NET 8 LTS) is the authoritative write-path ORM (enforcing domain invariants and executing transaction outbox writes), high-throughput reporting and marksheet read operations bypass EF Core change tracking and execute via **Dapper micro-ORM**:
 
 ```csharp
 public async Task<IReadOnlyList<MarksheetStudentRowDto>> GetMarksheetAsync(Guid sectionId, Guid subjectId, CancellationToken ct)

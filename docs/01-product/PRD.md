@@ -1,4 +1,4 @@
-﻿# PRODUCT REQUIREMENTS DOCUMENT (PRD)
+# PRODUCT REQUIREMENTS DOCUMENT (PRD)
 
 ## Fidel Hub — School Management SaaS Platform
 
@@ -131,7 +131,7 @@ Platform Super Administrator
 Responsible for operating the SaaS platform.
 
 Responsibilities:
-[01/11/2026 12:33 PM] Yo: - Manage tenants.
+- Manage tenants.
 - Manage subscriptions and platform configuration.
 - Monitor platform health.
 - Manage platform-wide settings.
@@ -295,7 +295,7 @@ Functional requirements:
 Purpose: Maintain complete student records throughout their relationship with the school.
 
 Functional requirements:
-[01/11/2026 12:33 PM] Yo: - Register students.
+- Register students.
 - Generate student identification numbers.
 - Maintain student profiles.
 - Manage guardian relationships.
@@ -379,23 +379,23 @@ Functional requirements:
 
 Attendance must be recorded against valid student enrollment.
 
-5.10 Offline Attendance
+5.10 Offline CBT & Examination Operations
 
-Purpose: Allow authorized staff to record attendance without internet connectivity.
+Purpose: Enable schools to administer Computer-Based Testing (CBT) and examinations reliably during internet and electrical power outages using the Local Exam Venue Server (EVS) and local SQLite storage.
 
 Functional requirements:
 
-- Download authorized attendance data.
-- Store attendance data locally.
-- Record attendance offline.
-- Queue unsynchronized operations.
-- Synchronize when connectivity returns.
-- Prevent duplicate operations.
-- Validate user and branch authorization.
-- Detect synchronization conflicts.
-- Display synchronization results.
+- Pre-fetch AES-256 encrypted exam packages containing questions, KaTeX formulas, media attachments, and option permutations from the central cloud API.
+- Store exam bundles and candidate response sessions locally in SQLite (WAL mode).
+- Administer CBT assessments across the local school LAN with 100% zero external internet connectivity.
+- Continuous heartbeat autosave (sub-50ms) preserving candidate answers and exact remaining countdown time.
+- Instant workstation crash recovery restoring in-progress sessions without answer loss or time skew.
+- Validate candidate identity and proctor exam start authorization locally.
+- Queue completed examination sessions for background synchronization upon internet restoration.
+- Idempotently upload completed sessions via batch synchronization (`POST /api/v1/cbt/sessions/sync`), preventing duplicate submissions or score distortion through database unique constraints.
+- Maintain tamper-evident synchronization batch logs and audit records.
 
-Offline support is limited to attendance in the initial release.
+Offline execution and local SQLite WAL synchronization in the initial release are focused strictly on Computer-Based Testing (CBT) and Examinations. Teacher attendance operations run online in the initial release (with mobile offline attendance synchronization deferred to a future phase).
 
 5.11 Examination and Results Management
 
@@ -449,7 +449,7 @@ Financial Requirements
 The initial product covers fee management and does not implement a complete general ledger.
 
 5.13 Reporting and Dashboards
-[01/11/2026 12:33 PM] Yo: Purpose: Provide operational and management visibility.
+Purpose: Provide operational and management visibility.
 
 Initial reporting scope:
 
@@ -543,17 +543,16 @@ Functional requirements:
 5. Records are validated and stored.
 6. Attendance reports are updated.
 
-When offline, CBT exam sessions are stored locally and synchronized after connectivity returns.
+6.6 Examination & CBT Operations
 
-6.6 Examination
-
-1. Authorized user creates an assessment.
-2. Assessment configuration is established.
-3. Student marks are entered.
-4. Marks are validated.
-5. Results are calculated.
-6. Authorized staff review results.
-7. Results are approved and published.
+1. Authorized examiner creates and schedules an assessment in the Question Bank.
+2. Assessment package is compiled, signed, and encrypted for venue export.
+3. Local Exam Venue Server downloads and stages the encrypted exam bundle.
+4. Candidates sit for examinations on school LAN workstations (100% offline).
+5. Responses and timers are continuously autosaved to local SQLite WAL storage.
+6. Exam session is submitted and encrypted at the venue server upon completion.
+7. Venue server idempotently synchronizes completed exam batches to the cloud API upon internet reconnection.
+8. Results are verified, calculated, reviewed by authorized staff, and published.
 
 6.7 Fee Collection
 
@@ -599,13 +598,16 @@ The application must provide responsive user experiences under normal operating 
 
 Performance must be measured through representative workloads.
 
-Initial engineering targets:
-[01/11/2026 12:33 PM] Yo: - Standard API reads: 95th percentile under 500 ms.
-- Standard API writes: 95th percentile under 800 ms.
-- Common page data should load without unnecessary sequential API calls.
-- Attendance synchronization must support batched operations.
+Engineering performance benchmarks (aligned with SRS.md NFR-PRF-001 through NFR-PRF-003):
+- Standard API reads and directory searches: 95th percentile under 200 ms.
+- Complex analytical reads and report compilations: 95th percentile under 500 ms.
+- Standard transactional API writes: 95th percentile under 800 ms.
+- CBT local autosave latency: sub-50ms per heartbeat autosave transaction via SQLite WAL mode.
+- Report card batch generation: compilation of 1,000 dual-calendar PDF report cards within 90 seconds via background worker queues.
+- Common page data must load within a single composite query without sequential N+1 API calls.
+- Offline CBT examination synchronization must support batched, idempotent operations with zero duplicate records.
 
-These are initial targets, not guarantees. Production targets will be validated through load testing.
+These benchmarks are verified continuously through automated k6 load tests and CI/CD performance gates.
 
 7.3 Availability and Reliability
 
@@ -670,63 +672,57 @@ The product must support:
 
 9. Product Scope Boundaries
 
-The initial product does not include:
+### 9.1 Excluded / Out-of-Scope Capabilities
+The Fidel Hub platform explicitly excludes the following capabilities from its architecture baseline:
+- Full double-entry general ledger accounting (chart of accounts, trial balances, journal ledgers)—the system strictly focuses on Student Fee Management and Invoicing.
+- Payroll processing and employee tax deductions.
+- Full human resources (HR), recruitment, and staff performance appraisals.
+- Transport fleet GPS tracking and vehicle maintenance.
+- Hostel and boarding dormitory room allocations.
+- Learning Management System (LMS) features such as real-time video conferencing, SCORM packages, and live screen sharing.
+- Enterprise-wide warehouse inventory and procurement workflows.
+- Offline financial and invoice payment processing (all fee transactions require online connection).
+- Distributed microservices architecture (the application strictly operates as a modular monolith).
 
-- Full general ledger accounting.
-- Payroll processing.
-- Full HR and recruitment management.
-- Library management.
-- Transport fleet management.
-- Hostel management.
-- Learning Management System functionality.
-- Online learning and video classes.
-- Full inventory and procurement.
-- Advanced parent-teacher communication channels.
-- Offline financial transactions.
-- Microservices architecture.
-
-These features may be considered in subsequent product releases through formal scope reviews.
+### 9.2 Phased Expanded Institutional Modules (Phase 2 / P2 Scope)
+The following 5 modules are fully incorporated in the system architecture, database schema, and project solution layout, and are scheduled for delivery in Phase 2 (P2) of the product roadmap:
+- **Module 11: Library & Media Resource Management** (`FidelHub.Modules.Library`, `library` schema): Physical book cataloging, barcode circulation, digital e-book repository, and automated overdue fee calculation.
+- **Module 12: Laboratory & Specialized ICT Facilities** (`FidelHub.Modules.Facilities`, `facilities` schema): Science apparatus and chemical inventory management, hazard tracking, and lab room reservation scheduling.
+- **Module 13: Student Health & Clinic Dispensary** (`FidelHub.Modules.Health`, `health` schema): Confidential student medical profiles, clinic dispensary visits, vital signs logging, and urgent guardian emergency SMS alerts.
+- **Module 14: Staff/Teacher Grade Modification Audit** (`FidelHub.Modules.Audit`, `audit` schema): Tamper-evident immutable audit trails tracking all post-deadline mark modifications with mandatory reason codes.
+- **Module 15: Platform SuperAdmin CRM & Subscription Quotas** (`FidelHub.Modules.Platform`, `platform` schema): Multi-tenant subscription tier enforcement, active student headcount quotas, and automated tenant snapshot exports.
 
 ---
 
 10. Initial Release Priorities
 
-P0 — Essential Foundation
+### Phase 1: Core Foundation & Multi-Tenancy Kernel (P0)
+- Organization, Tenant, and Branch campus management (`FidelHub.Modules.Tenants`).
+- Identity & Access Management with Better Auth service integration (`FidelHub.Modules.Identity`).
+- PostgreSQL Row-Level Security (RLS) enforcement across 15 schemas.
+- Dual Ethiopian/Gregorian calendar engine and school configuration (`FidelHub.Modules.Academics`).
 
-- Tenant management.
-- Branch management.
-- User management.
-- Authentication and authorization.
-- Tenant and branch isolation.
-- School configuration.
+### Phase 1: Core School Operations & Student SIS (P1)
+- Student Information System (SIS) with three-part Ethiopian naming and guardian links (`FidelHub.Modules.Students`).
+- Admissions processing and online application intake (`FidelHub.Modules.Admissions`).
+- Timetables, classroom schedules, subjects, and teacher lesson plans (`FidelHub.Modules.Academics`).
+- Teacher management and class assignments.
+- Homeroom and period-by-period daily attendance tracking (`FidelHub.Modules.Attendance`).
 
-P1 — Core School Operations
+### Phase 1: CBT, Grading & Student Fee Integrity (P2 Core)
+- Question Bank authoring, assessment assembly, and KaTeX formula support (`FidelHub.Modules.Examinations`).
+- Local Exam Venue Server (EVS) with 100% offline LAN test delivery and SQLite WAL autosave.
+- Continuous Assessment (CA) gradebook with spreadsheet-style entry and approval locks (`FidelHub.Modules.Grading`).
+- Student Fee Management, snapshot agreements, batch invoicing, and idempotent payments (`FidelHub.Modules.Finance`).
+- Communication & automated unexcused absence SMS dispatch (`FidelHub.Modules.Communication`).
+- Reporting, transcript compilation, and Ge'ez PDF report cards (`FidelHub.Modules.Reporting`).
 
-- Student management.
-- Guardian management.
-- Admission management.
-- Academic management.
-- Staff and teacher management.
-- Attendance management.
-
-P2 — Academic and Financial Operations
-
-- Offline CBT and examinations.
-- Examination management.
-- Results management.
-- Fee management.
-- Invoice management.
-- Payment collection.
-- Financial reporting.
-
-P3 — Platform Enhancement
-
-- Advanced dashboards.
-- Extended reporting.
-- Parent portal.
-- Student portal.
-- Notifications.
-- Additional integrations.
+### Phase 2: Expanded Institutional Modules (P2 Expanded)
+- Library & Media Resource Management (`FidelHub.Modules.Library`).
+- Laboratory & Specialized ICT Facility Management (`FidelHub.Modules.Facilities`).
+- Student Health, Clinic Dispensary & Medical Care (`FidelHub.Modules.Health`).
+- Staff/Teacher Grade Modification & Security Audit Trail (`FidelHub.Modules.Audit`).
+- Platform SuperAdmin Management & Subscription Quotas (`FidelHub.Modules.Platform`).
 
 ---
 
@@ -759,18 +755,56 @@ Attendance
 
 - Authorized users can record attendance.
 - Attendance is linked to valid enrollment.
-- Offline CBT examination sessions can be synchronized.
+
+Examinations & Offline CBT
+
+- Assessments and Question Bank papers can be configured with KaTeX formulas.
+- Offline CBT examination packages can be exported, administered locally on LAN, and synchronized idempotently.
 - Replayed synchronization operations do not create duplicates.
-
-Examinations
-
-- Assessments can be configured.
 - Marks are validated.
 - Results can be calculated and approved.
 - Historical results are preserved.
-[01/11/2026 12:33 PM] Yo: Finance
+
+Finance
 
 - Fee structures can be configured.
 - Student fees can be assigned.
 - Invoices can be posted.
-- Payments can be confirmed and alloca
+- Payments can be confirmed and allocated against posted invoices without over-allocation.
+- Official sequential receipts are generated with tamper-evident verification codes.
+- Credit balances, discounts, and partial payments are tracked accurately.
+- Financial transactions maintain an immutable audit trail without full double-entry general ledger complexity.
+
+Communication & Notifications
+
+- School-wide and branch-specific announcements can be composed and published to targeted audiences.
+- Automated unexcused absence SMS alerts are triggered upon homeroom attendance finalization and dispatched within 15 minutes.
+- Guardian communication preferences (SMS, email, push) are strictly respected.
+- Notification dispatch history and delivery receipts are permanently logged and auditable.
+
+Reporting, Transcripts & Analytics
+
+- Academic report cards and student transcripts compile accurately with dual Ethiopian/Gregorian dates, Ge'ez Amharic typography, and verification QR codes.
+- Real-time operational dashboards reflect live branch metrics for admissions, enrollment, daily attendance, and fee collection.
+- Bulk report generation (e.g., 1,000 PDF report cards) compiles within 90 seconds without web server timeouts.
+- All analytical exports (PDF, Excel, CSV) execute asynchronously with downloadable artifact links.
+
+Phase 2 Expanded Institutional Modules (Operational Criteria)
+
+- Library & Media: Physical book cataloging, barcode circulation, digital e-book repository, and automated overdue fine calculations operate reliably.
+- Facilities & Lab Safety: Science and ICT laboratory apparatus inventories, chemical hazard ratings, and room reservation scheduling prevent timetable collisions.
+- Student Health & Clinic: Student medical profiles (allergies, chronic conditions), clinic dispensary visit logging, and urgent guardian SMS notifications function seamlessly.
+- Grade Modification Audit: Tamper-evident audit logging records every post-deadline mark adjustment with mandatory reason codes, previous scores, and approver identity.
+- Platform SuperAdmin & Subscriptions: SaaS tenant subscription tier limits (student count ceilings, branch limits, document storage quotas) are enforced automatically.
+
+---
+
+12. Document Sign-off & Revision Approvals
+
+| Role | Organization / Working Group | Representative | Status | Sign-off Date |
+| :--- | :--- | :--- | :--- | :--- |
+| **Product Manager** | Fidel Hub Product Working Group | Product Directorate | Approved Baseline | 2026-11-01 |
+| **Lead Technical Architect** | Architecture Review Board | Technical Architecture Directorate | Approved Baseline | 2026-11-01 |
+| **Backend Engineering Lead** | Core Platform Engineering | Backend Directorate | Approved Baseline | 2026-11-01 |
+| **Frontend & Mobile Lead** | Client Experience Working Group | Client Engineering Directorate | Approved Baseline | 2026-11-01 |
+| **Quality Assurance Lead** | Verification & Compliance | QA Directorate | Approved Baseline | 2026-11-01 |
