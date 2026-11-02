@@ -10,8 +10,8 @@
 | **Auth Engine** | Better Auth (Node.js/PostgreSQL) with Organizations & JWT Plugins |
 | **Token Format** | Cryptographically Signed JWT (RS256 / EdDSA) with JWKS |
 | **Authorization Engine** | ASP.NET Core Policy-Based Handlers + PostgreSQL Kernel RLS |
-| **Framework & SDK** | .NET 10 LTS (`net10.0`) |
-| **Prerequisites** | Developers must install .NET 10 SDK or higher. |
+| **Framework & SDK** | .NET 8 LTS (`net8.0`) |
+| **Prerequisites** | Developers must install .NET 8 LTS SDK or higher. |
 | **Package Dependencies** | `Microsoft.AspNetCore.Authentication.JwtBearer: 10.x`, `Microsoft.AspNetCore.*: 10.x` |
 | **Container Base Images** | `mcr.microsoft.com/dotnet/aspnet:10.0` (runtime), `mcr.microsoft.com/dotnet/sdk:10.0` (build) |
 

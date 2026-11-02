@@ -8,8 +8,8 @@
 | **Version** | 1.0 |
 | **Status** | Approved Baseline |
 | **Target Runtime** | Docker Containers / Kubernetes (EKS / Self-Hosted) |
-| **Framework & SDK** | .NET 10 LTS (`net10.0`) |
-| **Prerequisites** | Developers must install .NET 10 SDK or higher. |
+| **Framework & SDK** | .NET 8 LTS (`net8.0`) |
+| **Prerequisites** | Developers must install .NET 8 LTS SDK or higher. |
 | **Package Dependencies** | `Microsoft.AspNetCore.*: 10.x`, `Microsoft.EntityFrameworkCore.*: 10.x` |
 | **Base Images (Container)** | Runtime: `mcr.microsoft.com/dotnet/aspnet:10.0` | SDK: `mcr.microsoft.com/dotnet/sdk:10.0` |
 | **Reverse Proxy** | NGINX / Cloudflare Gateway with TLS 1.3 |
@@ -65,12 +65,12 @@ graph TD
 All Fidel Hub .NET services must follow the standardized multi-stage container build specifications:
 - **Build Image Directive**: `mcr.microsoft.com/dotnet/sdk:10.0`
 - **Runtime Base Image Directive**: `mcr.microsoft.com/dotnet/aspnet:10.0`
-- **Target Framework**: `net10.0`
-- **Prerequisites**: Developers must install .NET 10 SDK or higher.
+- **Target Framework**: `net8.0`
+- **Prerequisites**: Developers must install .NET 8 LTS SDK or higher.
 - **Dependencies**: Package dependencies strictly use `Microsoft.AspNetCore.*: 10.x` and `Microsoft.EntityFrameworkCore.*: 10.x`.
 
 ```dockerfile
-# Multi-stage build for Fidel Hub Core API (.NET 10 LTS)
+# Multi-stage build for Fidel Hub Core API (.NET 8 LTS)
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY FidelHub.sln ./
@@ -79,7 +79,7 @@ RUN dotnet restore FidelHub.sln
 WORKDIR /src/backend/School.Api
 RUN dotnet publish -c Release -o /app/publish --no-restore
 
-# Runtime Stage (.NET 10 ASP.NET Core LTS)
+# Runtime Stage (.NET 8 LTS ASP.NET Core LTS)
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 EXPOSE 8080

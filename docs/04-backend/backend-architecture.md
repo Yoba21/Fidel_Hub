@@ -7,12 +7,12 @@
 | **Document ID** | BDA-001 |
 | **Version** | 1.0 |
 | **Status** | Approved Baseline |
-| **Framework** | .NET 10 LTS (`net10.0`) / ASP.NET Core 10 / EF Core 10 |
-| **Prerequisites** | Developers must install .NET 10 SDK or higher. |
+| **Framework** | .NET 8 LTS (`net8.0`) / ASP.NET Core 10 / EF Core 8 |
+| **Prerequisites** | Developers must install .NET 8 LTS SDK or higher. |
 | **Package Dependencies** | `Microsoft.AspNetCore.*: 10.x`, `Microsoft.EntityFrameworkCore.*: 10.x` |
 | **Container Images** | `mcr.microsoft.com/dotnet/aspnet:10.0`, `mcr.microsoft.com/dotnet/sdk:10.0` |
 | **Architecture Style** | Domain-Driven Modular Monolith (Vertical Slices + CQRS) |
-| **Data Access** | EF Core 10 (Write Path) + Dapper (High-Throughput Read Path) |
+| **Data Access** | EF Core 8 (Write Path) + Dapper (High-Throughput Read Path) |
 
 ---
 
@@ -64,14 +64,14 @@ graph TD
 ### Core Invariants:
 1. **Independent Module Boundaries**: Modules communicate across boundaries exclusively via in-memory MediatR Commands/Queries or asynchronous Domain Events. Direct cross-module database joins or entity references are strictly forbidden.
 2. **Dual-Path Data Access (CQRS)**:
-   - **Command Write Path**: Uses EF Core 10 to enforce rich domain business logic, validate invariants, and atomically write domain events to `integration.outbox_messages`.
+   - **Command Write Path**: Uses EF Core 8 to enforce rich domain business logic, validate invariants, and atomically write domain events to `integration.outbox_messages`.
    - **Query Read Path**: Uses **Dapper** with raw parameterized SQL to project directly into flat DTOs, bypassing entity materialization and change tracking for maximum read performance.
 
 ---
 
 ## 2. Solution & Project Structure
 
-The codebase is standardized on a **Per-Module Vertical Slice Project Layout** using the unified **`FidelHub.*`** naming convention (.NET 10 LTS):
+The codebase is standardized on a **Per-Module Vertical Slice Project Layout** using the unified **`FidelHub.*`** naming convention (.NET 8 LTS):
 
 ```
 backend/

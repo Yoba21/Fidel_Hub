@@ -7,7 +7,7 @@
 | **Document ID** | DMS-001 |
 | **Version** | 1.0 |
 | **Status** | Approved Baseline |
-| **Migration Engine** | Entity Framework Core 8 Migrations (.NET 8 LTS) + Reviewed Raw SQL Scripts |
+| **Migration Engine** | Entity Framework Core 10 Migrations (.NET 8 LTS) + Reviewed Raw SQL Scripts |
 | **Deployment Mode** | Zero-Downtime Expand/Contract with PostgreSQL Native Transactions |
 
 ---

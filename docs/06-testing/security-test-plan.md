@@ -9,8 +9,8 @@
 | **Status** | Approved Baseline |
 | **Scope** | Kernel RLS Penetration, Better Auth JWT Validation, STRIDE Threat Model |
 | **Compliance** | Ethiopian Personal Data Protection Standards & OWASP ASVS 4.0 |
-| **Target Runtime** | .NET 10 LTS (`net10.0`) |
-| **Prerequisites** | Developers must install .NET 10 SDK or higher. |
+| **Target Runtime** | .NET 8 LTS (`net8.0`) |
+| **Prerequisites** | Developers must install .NET 8 LTS SDK or higher. |
 | **Package Dependencies** | `Microsoft.AspNetCore.*: 10.x`, `Microsoft.EntityFrameworkCore.*: 10.x` |
 | **Container Images** | `mcr.microsoft.com/dotnet/aspnet:10.0`, `mcr.microsoft.com/dotnet/sdk:10.0` |
 

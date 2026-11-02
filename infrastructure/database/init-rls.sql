@@ -95,7 +95,8 @@ CREATE TABLE IF NOT EXISTS platform.tenant_quotas (
     storage_quota_gb INT NOT NULL DEFAULT 20,
     is_cbt_enabled BOOLEAN NOT NULL DEFAULT true,
     subscription_expires_at TIMESTAMPTZ NULL,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_tenant_quotas_tenant_id UNIQUE (tenant_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS platform.tenant_settings (
@@ -104,55 +105,12 @@ CREATE TABLE IF NOT EXISTS platform.tenant_settings (
     setting_key VARCHAR(100) NOT NULL,
     setting_value JSONB NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_tenant_settings UNIQUE (tenant_id, setting_key)
+    CONSTRAINT uq_tenant_settings UNIQUE (tenant_id, setting_key),
+    CONSTRAINT uq_tenant_settings_tenant_id UNIQUE (tenant_id, id)
 );
 
 -- ------------------------------------------------------------------------------
--- 6. Identity Schema Tables
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS identity.users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL REFERENCES platform.tenants(id) ON DELETE CASCADE,
-    email VARCHAR(255) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    full_name VARCHAR(200) NOT NULL,
-    phone_number VARCHAR(30) NULL,
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    email_verified BOOLEAN NOT NULL DEFAULT false,
-    two_factor_enabled BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_tenant_user_email UNIQUE (tenant_id, email)
-);
-
-CREATE TABLE IF NOT EXISTS identity.roles (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    code VARCHAR(50) UNIQUE NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    description TEXT NULL
-);
-
-CREATE TABLE IF NOT EXISTS identity.user_roles (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL REFERENCES platform.tenants(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES identity.users(id) ON DELETE CASCADE,
-    role_id UUID NOT NULL REFERENCES identity.roles(id) ON DELETE CASCADE,
-    assigned_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_user_role UNIQUE (tenant_id, user_id, role_id)
-);
-
-CREATE TABLE IF NOT EXISTS identity.user_branch_access (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL REFERENCES platform.tenants(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES identity.users(id) ON DELETE CASCADE,
-    branch_id UUID NOT NULL, -- Logical link to school.branches
-    is_default BOOLEAN NOT NULL DEFAULT false,
-    granted_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_user_branch UNIQUE (tenant_id, user_id, branch_id)
-);
-
--- ------------------------------------------------------------------------------
--- 7. School Schema Tables
+-- 6. School Schema Tables (Branches created before user_branch_access foreign key)
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS school.branches (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -168,7 +126,8 @@ CREATE TABLE IF NOT EXISTS school.branches (
     is_active BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_branch_code UNIQUE (tenant_id, code)
+    CONSTRAINT uq_branch_code UNIQUE (tenant_id, code),
+    CONSTRAINT uq_branches_tenant_id UNIQUE (tenant_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS school.academic_years (
@@ -180,19 +139,72 @@ CREATE TABLE IF NOT EXISTS school.academic_years (
     end_date DATE NOT NULL,
     is_current BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_academic_year_code UNIQUE (tenant_id, code)
+    CONSTRAINT uq_academic_year_code UNIQUE (tenant_id, code),
+    CONSTRAINT uq_academic_years_tenant_id UNIQUE (tenant_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS school.academic_terms (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES platform.tenants(id) ON DELETE CASCADE,
-    academic_year_id UUID NOT NULL REFERENCES school.academic_years(id) ON DELETE CASCADE,
+    academic_year_id UUID NOT NULL,
     name VARCHAR(100) NOT NULL, -- e.g. "Term 1" / "Semester 1"
     sequence INT NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     is_locked BOOLEAN NOT NULL DEFAULT false,
-    CONSTRAINT uq_academic_term_seq UNIQUE (tenant_id, academic_year_id, sequence)
+    CONSTRAINT uq_academic_term_seq UNIQUE (tenant_id, academic_year_id, sequence),
+    CONSTRAINT uq_academic_terms_tenant_id UNIQUE (tenant_id, id),
+    CONSTRAINT fk_academic_terms_year FOREIGN KEY (tenant_id, academic_year_id) REFERENCES school.academic_years (tenant_id, id) ON DELETE CASCADE
+);
+
+-- ------------------------------------------------------------------------------
+-- 7. Identity Schema Tables
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS identity.users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES platform.tenants(id) ON DELETE CASCADE,
+    email VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    full_name VARCHAR(200) NOT NULL,
+    phone_number VARCHAR(30) NULL,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    email_verified BOOLEAN NOT NULL DEFAULT false,
+    two_factor_enabled BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_tenant_user_email UNIQUE (tenant_id, email),
+    CONSTRAINT uq_users_tenant_id UNIQUE (tenant_id, id)
+);
+
+CREATE TABLE IF NOT EXISTS identity.roles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    description TEXT NULL
+);
+
+CREATE TABLE IF NOT EXISTS identity.user_roles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES platform.tenants(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL,
+    role_id UUID NOT NULL REFERENCES identity.roles(id) ON DELETE CASCADE,
+    assigned_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_user_role UNIQUE (tenant_id, user_id, role_id),
+    CONSTRAINT uq_user_roles_tenant_id UNIQUE (tenant_id, id),
+    CONSTRAINT fk_user_roles_user FOREIGN KEY (tenant_id, user_id) REFERENCES identity.users (tenant_id, id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS identity.user_branch_access (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES platform.tenants(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL,
+    branch_id UUID NOT NULL,
+    is_default BOOLEAN NOT NULL DEFAULT false,
+    granted_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_user_branch UNIQUE (tenant_id, user_id, branch_id),
+    CONSTRAINT uq_user_branch_access_tenant_id UNIQUE (tenant_id, id),
+    CONSTRAINT fk_user_branch_access_user FOREIGN KEY (tenant_id, user_id) REFERENCES identity.users (tenant_id, id) ON DELETE CASCADE,
+    CONSTRAINT fk_user_branch_access_branch FOREIGN KEY (tenant_id, branch_id) REFERENCES school.branches (tenant_id, id) ON DELETE CASCADE
 );
 
 -- ------------------------------------------------------------------------------
@@ -206,7 +218,8 @@ CREATE TABLE IF NOT EXISTS integration.outbox_messages (
     occurred_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     processed_at TIMESTAMPTZ NULL,
     retry_count INT NOT NULL DEFAULT 0,
-    error TEXT NULL
+    error TEXT NULL,
+    CONSTRAINT uq_outbox_messages_tenant_id UNIQUE (tenant_id, id)
 );
 
 CREATE INDEX IF NOT EXISTS ix_outbox_unprocessed 
@@ -227,11 +240,11 @@ ALTER TABLE identity.users FORCE ROW LEVEL SECURITY;
 ALTER TABLE identity.user_roles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE identity.user_roles FORCE ROW LEVEL SECURITY;
 
-ALTER TABLE identity.user_branch_access ENABLE ROW LEVEL SECURITY;
-ALTER TABLE identity.user_branch_access FORCE ROW LEVEL SECURITY;
-
 ALTER TABLE school.branches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE school.branches FORCE ROW LEVEL SECURITY;
+
+ALTER TABLE identity.user_branch_access ENABLE ROW LEVEL SECURITY;
+ALTER TABLE identity.user_branch_access FORCE ROW LEVEL SECURITY;
 
 ALTER TABLE school.academic_years ENABLE ROW LEVEL SECURITY;
 ALTER TABLE school.academic_years FORCE ROW LEVEL SECURITY;
@@ -244,31 +257,41 @@ ALTER TABLE integration.outbox_messages FORCE ROW LEVEL SECURITY;
 
 -- ------------------------------------------------------------------------------
 -- 10. Standard RLS Policies (USING & WITH CHECK)
+-- Permissive policies (PostgreSQL default) guarantee tenant isolation for fidel_app_user
 -- ------------------------------------------------------------------------------
+DROP POLICY IF EXISTS rls_tenant_quotas ON platform.tenant_quotas;
 CREATE POLICY rls_tenant_quotas ON platform.tenant_quotas FOR ALL TO fidel_app_user
 USING (tenant_id = current_tenant_id()) WITH CHECK (tenant_id = current_tenant_id());
 
+DROP POLICY IF EXISTS rls_tenant_settings ON platform.tenant_settings;
 CREATE POLICY rls_tenant_settings ON platform.tenant_settings FOR ALL TO fidel_app_user
 USING (tenant_id = current_tenant_id()) WITH CHECK (tenant_id = current_tenant_id());
 
+DROP POLICY IF EXISTS rls_users ON identity.users;
 CREATE POLICY rls_users ON identity.users FOR ALL TO fidel_app_user
 USING (tenant_id = current_tenant_id()) WITH CHECK (tenant_id = current_tenant_id());
 
+DROP POLICY IF EXISTS rls_user_roles ON identity.user_roles;
 CREATE POLICY rls_user_roles ON identity.user_roles FOR ALL TO fidel_app_user
 USING (tenant_id = current_tenant_id()) WITH CHECK (tenant_id = current_tenant_id());
 
-CREATE POLICY rls_user_branch_access ON identity.user_branch_access FOR ALL TO fidel_app_user
-USING (tenant_id = current_tenant_id()) WITH CHECK (tenant_id = current_tenant_id());
-
+DROP POLICY IF EXISTS rls_branches ON school.branches;
 CREATE POLICY rls_branches ON school.branches FOR ALL TO fidel_app_user
 USING (tenant_id = current_tenant_id()) WITH CHECK (tenant_id = current_tenant_id());
 
+DROP POLICY IF EXISTS rls_user_branch_access ON identity.user_branch_access;
+CREATE POLICY rls_user_branch_access ON identity.user_branch_access FOR ALL TO fidel_app_user
+USING (tenant_id = current_tenant_id()) WITH CHECK (tenant_id = current_tenant_id());
+
+DROP POLICY IF EXISTS rls_academic_years ON school.academic_years;
 CREATE POLICY rls_academic_years ON school.academic_years FOR ALL TO fidel_app_user
 USING (tenant_id = current_tenant_id()) WITH CHECK (tenant_id = current_tenant_id());
 
+DROP POLICY IF EXISTS rls_academic_terms ON school.academic_terms;
 CREATE POLICY rls_academic_terms ON school.academic_terms FOR ALL TO fidel_app_user
 USING (tenant_id = current_tenant_id()) WITH CHECK (tenant_id = current_tenant_id());
 
+DROP POLICY IF EXISTS rls_outbox_messages ON integration.outbox_messages;
 CREATE POLICY rls_outbox_messages ON integration.outbox_messages FOR ALL TO fidel_app_user
 USING (tenant_id = current_tenant_id()) WITH CHECK (tenant_id = current_tenant_id());
 
@@ -315,3 +338,20 @@ INSERT INTO school.academic_terms (id, tenant_id, academic_year_id, name, sequen
     (gen_random_uuid(), '11111111-1111-1111-1111-111111111111', '33333333-3333-3333-3333-333333333333', 'Semester 1', 1, '2026-09-01', '2027-01-31', false),
     (gen_random_uuid(), '11111111-1111-1111-1111-111111111111', '33333333-3333-3333-3333-333333333333', 'Semester 2', 2, '2027-02-01', '2027-06-30', false)
 ON CONFLICT DO NOTHING;
+
+-- 11.5 Seed Default Tenant User (Solomon Bekele Hailu)
+INSERT INTO identity.users (id, tenant_id, email, password_hash, full_name, phone_number, is_active, email_verified) VALUES
+    ('b2f6c0a8-4e12-4d56-9812-7a541289de01', '11111111-1111-1111-1111-111111111111', 'solomon@fidelhub.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4D.xZvy9ma', 'Solomon Bekele Hailu', '+251911223344', true, true)
+ON CONFLICT (tenant_id, email) DO NOTHING;
+
+-- Seed User Role (TEACHER & EXAM_COORDINATOR)
+INSERT INTO identity.user_roles (id, tenant_id, user_id, role_id) VALUES
+    (gen_random_uuid(), '11111111-1111-1111-1111-111111111111', 'b2f6c0a8-4e12-4d56-9812-7a541289de01', '00000000-0000-0000-0000-000000000005'),
+    (gen_random_uuid(), '11111111-1111-1111-1111-111111111111', 'b2f6c0a8-4e12-4d56-9812-7a541289de01', '00000000-0000-0000-0000-000000000006')
+ON CONFLICT DO NOTHING;
+
+-- Seed User Branch Access (Main Bole Campus)
+INSERT INTO identity.user_branch_access (id, tenant_id, user_id, branch_id, is_default) VALUES
+    (gen_random_uuid(), '11111111-1111-1111-1111-111111111111', 'b2f6c0a8-4e12-4d56-9812-7a541289de01', '22222222-2222-2222-2222-222222222222', true)
+ON CONFLICT DO NOTHING;
+

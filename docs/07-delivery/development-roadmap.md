@@ -20,7 +20,7 @@ gantt
     dateFormat  YYYY-MM-DD
     section Phase 1: Core Foundation
     Platform Multi-Tenancy & Better Auth        :done, p1_1, 2026-11-01, 2026-11-20
-    PostgreSQL RLS & EF Core 8 Setup            :done, p1_2, 2026-11-05, 2026-11-25
+    PostgreSQL RLS & EF Core 8 Setup           :done, p1_2, 2026-11-05, 2026-11-25
     SIS, Admissions & Dual Calendar             :active, p1_3, 2026-11-20, 2026-12-15
     
     section Phase 2: Operations & Finance

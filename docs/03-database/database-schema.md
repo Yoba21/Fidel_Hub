@@ -32,7 +32,7 @@ It defines the database schemas, entities, relationships, constraints, indexes, 
 | Component | Technology |
 | :--- | :--- |
 | **Database** | PostgreSQL |
-| **ORM** | Entity Framework Core 8 (.NET 8 LTS) |
+| **ORM** | Entity Framework Core 10 (.NET 8 LTS) |
 | **Database provider** | Npgsql |
 | **Primary key strategy** | UUID |
 | **Monetary values** | NUMERIC(14,2) |
@@ -889,7 +889,8 @@ Stores attendance record for each student in a session.
 | student_id | UUID | Required (FK to students.students) |
 | status | VARCHAR(20) | Required (PRESENT, ABSENT_UNEXCUSED, ABSENT_EXCUSED, LATE, HALF_DAY) |
 | rrival_time | TIME | Nullable |
-| emarks | TEXT | Nullable |
+| 
+emarks | TEXT | Nullable |
 | created_at | TIMESTAMPTZ | Required |
 
 Constraints:
@@ -906,11 +907,13 @@ Audit log of any post-submission attendance modifications.
 | id | UUID | PK |
 | 	enant_id | UUID | Required |
 | ranch_id | UUID | Required |
-| ecord_id | UUID | Required (FK to attendance.records) |
+| 
+ecord_id | UUID | Required (FK to attendance.records) |
 | previous_status | VARCHAR(20) | Required |
 | 
 ew_status | VARCHAR(20) | Required |
-| eason | TEXT | Required |
+| 
+eason | TEXT | Required |
 | uthorized_by | UUID | Required |
 | corrected_at | TIMESTAMPTZ | Required |
 
@@ -951,7 +954,8 @@ Individual questions supporting rich formatting, KaTeX, and Bloom's taxonomy.
 | 	opic_tag | VARCHAR(100) | Optional |
 | points | NUMERIC(5,2) | Required (Default 1.00) |
 | media_url | TEXT | Nullable (Diagram / Image attachment) |
-| ubric_explanation| TEXT | Nullable (Grading notes for theory questions) |
+| 
+ubric_explanation| TEXT | Nullable (Grading notes for theory questions) |
 | created_by | UUID | Required |
 | created_at | TIMESTAMPTZ | Required |
 
@@ -1076,9 +1080,12 @@ UNIQUE (tenant_id, session_id, question_id)
 | learning_objectives| TEXT | Required |
 | 	eaching_methodology| TEXT | Required |
 | status | VARCHAR(30) | Required (DRAFT, SUBMITTED, APPROVED, REVISION_REQUESTED) |
-| eviewed_by | UUID | Nullable |
-| eviewed_at | TIMESTAMPTZ | Nullable |
-| eview_comments | TEXT | Nullable |
+| 
+eviewed_by | UUID | Nullable |
+| 
+eviewed_at | TIMESTAMPTZ | Nullable |
+| 
+eview_comments | TEXT | Nullable |
 
 ### 15.2 cademic.timetables
 
@@ -1097,7 +1104,8 @@ UNIQUE (tenant_id, session_id, question_id)
 | end_time | TIME | Required |
 | subject_id | UUID | Required |
 | 	eacher_id | UUID | Required |
-| oom_number | VARCHAR(50) | Optional |
+| 
+oom_number | VARCHAR(50) | Optional |
 
 Constraints:
 UNIQUE (tenant_id, branch_id, class_id, section_id, day_of_week, period_number)
@@ -1126,13 +1134,15 @@ Behavioral and character development evaluation areas.
 | 	erm_id | UUID | Required |
 | student_id | UUID | Required |
 | 	rait_id | UUID | Required |
-| ating_score | INTEGER | Required (Scale 1 to 5) |
+| 
+ating_score | INTEGER | Required (Scale 1 to 5) |
 | evaluated_by | UUID | Required (Teacher) |
 
 Constraint:
 UNIQUE (tenant_id, branch_id, term_id, student_id, trait_id)
 
-### 15.5 cademic.gradebooks & eport_cards
+### 15.5 cademic.gradebooks & 
+eport_cards
 
 | Column | Type | Rules |
 | :--- | :--- | :--- |
@@ -1273,7 +1283,8 @@ Records incoming payments against invoices with idempotency protection.
 | mount | NUMERIC(14,2)| Required |
 | payment_date | DATE | Required |
 | payment_method | VARCHAR(30) | Required (CASH, TELEBIRR, CBE_BIRR, BANK_SLIP) |
-| eference_number | VARCHAR(100) | Nullable |
+| 
+eference_number | VARCHAR(100) | Nullable |
 | idempotency_key | UUID | Required, UNIQUE |
 | cashier_user_id | UUID | Required |
 | created_at | TIMESTAMPTZ | Required |
@@ -1292,7 +1303,8 @@ Sequential official receipts.
 | 	enant_id | UUID | Required |
 | ranch_id | UUID | Required |
 | payment_id | UUID | Required (FK to payments) |
-| eceipt_number | VARCHAR(50) | Required |
+| 
+eceipt_number | VARCHAR(50) | Required |
 | issued_at | TIMESTAMPTZ | Required |
 | is_cancelled | BOOLEAN | Default false |
 
@@ -1365,7 +1377,8 @@ Transactional Outbox pattern message queue.
 | payload | JSONB | Required |
 | occurred_at | TIMESTAMPTZ | Required |
 | processed_at | TIMESTAMPTZ | Nullable |
-| etry_count | INTEGER | Default 0 |
+| 
+etry_count | INTEGER | Default 0 |
 | error | TEXT | Nullable |
 
 Index:
@@ -1384,7 +1397,8 @@ Tracks offline CBT batches ingested from local exam venue servers.
 | atch_token | UUID | Required, UNIQUE |
 | exam_paper_id | UUID | Required |
 | sessions_count | INTEGER | Required |
-| eceived_at | TIMESTAMPTZ | Required |
+| 
+eceived_at | TIMESTAMPTZ | Required |
 | processed_at | TIMESTAMPTZ | Nullable |
 | status | VARCHAR(30) | Required (RECEIVED, PROCESSED, PARTIAL_ERRORS) |
 

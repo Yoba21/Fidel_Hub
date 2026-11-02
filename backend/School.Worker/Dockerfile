@@ -1,5 +1,5 @@
-# Multi-stage build for Fidel Hub Background Worker (.NET 10 LTS)
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+# Multi-stage build for Fidel Hub Background Worker (.NET 8 LTS)
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy solution and project definitions
@@ -17,6 +17,11 @@ COPY backend/Modules/Identity/Identity.csproj backend/Modules/Identity/
 COPY backend/Modules/Reporting/Reporting.csproj backend/Modules/Reporting/
 COPY backend/Modules/Students/Students.csproj backend/Modules/Students/
 COPY backend/Modules/Tenants/Tenants.csproj backend/Modules/Tenants/
+COPY backend/Modules/Grading/Grading.csproj backend/Modules/Grading/
+COPY backend/Modules/Library/Library.csproj backend/Modules/Library/
+COPY backend/Modules/Facilities/Facilities.csproj backend/Modules/Facilities/
+COPY backend/Modules/Health/Health.csproj backend/Modules/Health/
+COPY backend/Modules/Audit/Audit.csproj backend/Modules/Audit/
 COPY backend/tests/School.ArchitectureTests/School.ArchitectureTests.csproj backend/tests/School.ArchitectureTests/
 COPY backend/tests/School.UnitTests/School.UnitTests.csproj backend/tests/School.UnitTests/
 
@@ -27,8 +32,8 @@ COPY backend/ backend/
 WORKDIR /src/backend/School.Worker
 RUN dotnet publish -c Release -o /app/publish --no-restore
 
-# Runtime Stage (.NET 10 Runtime LTS)
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+# Runtime Stage (.NET 8 Runtime LTS)
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
 COPY --from=build /app/publish ./

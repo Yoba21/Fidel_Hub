@@ -39,7 +39,7 @@ The visual identity incorporates the Ge'ez character **ፊ** (*Fi* for Fidel / A
 Fidel Hub/
 ├── FidelHub.sln                         # Root solution linking all 15 backend projects & tests
 ├── backend/
-│   ├── FidelHub.Api/                    # ASP.NET Core 8 REST API, Middleware & RLS Context
+│   ├── FidelHub.Api/                    # ASP.NET Core 10 REST API, Middleware & RLS Context
 │   ├── FidelHub.Shared/                 # Shared kernel (Result<T>, Auditing, ICurrentTenantContext)
 │   ├── FidelHub.Worker/                 # Background Quartz.NET worker & Outbox dispatcher
 │   ├── Modules/                         # 15 Domain Modules (FidelHub.Modules.*)
@@ -64,7 +64,7 @@ Fidel Hub/
 │   ├── 06-testing/                      # Testing Strategy, Acceptance Criteria, Security Plan
 │   └── 07-delivery/                     # Roadmap, Sprint Plan, Development Plan, Deployment
 └── .github/workflows/
-    └── dotnet.yml                       # Automated CI build and test pipeline for .NET 8
+    └── dotnet.yml                       # Automated CI build and test pipeline for .NET 8 LTS
 ```
 
 ---
@@ -73,14 +73,14 @@ Fidel Hub/
 
 | Layer / Component | Technology Specification | Standard Version |
 | :--- | :--- | :--- |
-| **Backend Runtime** | .NET (LTS) | `.NET 10 (LTS)` |
-| **Target Framework** | C# Target Framework Moniker | `net10.0` |
-| **Web API Framework** | ASP.NET Core Minimal APIs | `Microsoft.AspNetCore.*: 10.x` |
-| **ORM / Data Access** | Entity Framework Core & Dapper | `Microsoft.EntityFrameworkCore.*: 10.x` |
-| **Container Runtime Image** | Microsoft Container Registry (ASP.NET) | `mcr.microsoft.com/dotnet/aspnet:10.0` |
-| **Container SDK Image** | Microsoft Container Registry (SDK) | `mcr.microsoft.com/dotnet/sdk:10.0` |
+| **Backend Runtime** | .NET (LTS) | `.NET 8 (LTS)` |
+| **Target Framework** | C# Target Framework Moniker | `net8.0` |
+| **Web API Framework** | ASP.NET Core Minimal APIs | `Microsoft.AspNetCore.*: 8.x` |
+| **ORM / Data Access** | Entity Framework Core & Dapper | `Microsoft.EntityFrameworkCore.*: 8.x` |
+| **Container Runtime Image** | Microsoft Container Registry (ASP.NET) | `mcr.microsoft.com/dotnet/aspnet:8.0` |
+| **Container SDK Image** | Microsoft Container Registry (SDK) | `mcr.microsoft.com/dotnet/sdk:8.0` |
 | **Database** | PostgreSQL with Row-Level Security (RLS) | `PostgreSQL 16+` |
-| **Frontend Portal** | React 19 + TypeScript + Vite + shadcn/ui | `Node.js 20+ LTS` |
+| **Frontend Portal** | React 18 + TypeScript + Vite + MUI v6 / shadcn/ui | `Node.js 20+ LTS` |
 | **Mobile Application** | React Native + Expo + SQLite (WAL mode) | `Expo SDK 51+` |
 
 ---
@@ -98,14 +98,14 @@ We are currently executing **Sprint 1 (Phase 1: Core Foundation & Multi-Tenancy 
 ## Getting Started
 
 ### Prerequisites
-- Developers must install .NET 10 SDK or higher.
+- Developers must install .NET 8 SDK or higher.
 - Node.js (v20+ LTS)
 - Docker & Docker Compose (or local PostgreSQL 16+)
 
 ### Container Guidelines (Docker / CI-CD)
-When containerizing Fidel Hub services, use the standardized .NET 10 LTS container images:
-- **Build Image**: `mcr.microsoft.com/dotnet/sdk:10.0`
-- **Runtime Base Image**: `mcr.microsoft.com/dotnet/aspnet:10.0`
+When containerizing Fidel Hub services, use the standardized .NET 8 LTS container images:
+- **Build Image**: `mcr.microsoft.com/dotnet/sdk:8.0`
+- **Runtime Base Image**: `mcr.microsoft.com/dotnet/aspnet:8.0`
 
 ### 1. Web Portal (React + Vite)
 ```bash
@@ -120,6 +120,13 @@ npm run dev
 dotnet restore
 dotnet build
 dotnet test
+```
+
+### 3. Local Infrastructure & Database (PostgreSQL RLS)
+For existing local containers, pass `-v` to ensure `init-rls.sql` runs on a clean volume:
+```bash
+docker compose -f infrastructure/docker/docker-compose.yml down -v
+docker compose -f infrastructure/docker/docker-compose.yml up -d
 ```
 
 ---

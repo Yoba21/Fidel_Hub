@@ -1,4 +1,4 @@
-# ENTITY FRAMEWORK CORE 8 MODELS SPECIFICATION
+# ENTITY FRAMEWORK CORE 10 MODELS SPECIFICATION
 
 ## Fidel Hub — Data Access & Domain Model Mapping
 
@@ -7,7 +7,7 @@
 | **Document ID** | EFC-001 |
 | **Version** | 1.0 |
 | **Status** | Approved Baseline |
-| **Framework** | Entity Framework Core 8 (Npgsql.EntityFrameworkCore.PostgreSQL / .NET 10 LTS) |
+| **Framework** | Entity Framework Core 10 (Npgsql.EntityFrameworkCore.PostgreSQL / .NET 8 LTS) |
 | **Pattern** | Domain-Driven Design (DDD) Aggregates, Value Objects & Fluent Configurations |
 
 ---

@@ -52,8 +52,8 @@ The architecture must:
 The following stack is the approved technical baseline.
 
 Layer| Technology
-Backend| ASP.NET Core 10 Web API (.NET 10 LTS)
-Language| C# 14 (Target Framework: net10.0)
+Backend| ASP.NET Core 10 Web API (.NET 8 LTS)
+Language| C# 12 (Target Framework: net8.0)
 ORM| Entity Framework Core 10 (Write Path) + Dapper (Read Path)
 Database provider| Npgsql for EF Core (10.x compatible)
 Database| PostgreSQL 16+
@@ -82,11 +82,11 @@ Cloud Hosting & Edge CDN| Vercel (Web Portal Edge CDN) + Managed PostgreSQL
 Transactional Email| Resend (React Email Templates)
 Application Telemetry| Sentry (@sentry/react & Sentry .NET SDK)
 
-Package versions must remain compatible with the selected .NET 10 and EF Core 10 LTS versions (`Microsoft.AspNetCore.*: 10.x`, `Microsoft.EntityFrameworkCore.*: 10.x`). Developers must install .NET 10 SDK or higher. Container base image directives are standardized on `mcr.microsoft.com/dotnet/aspnet:10.0` (runtime) and `mcr.microsoft.com/dotnet/sdk:10.0` (SDK).
+Package versions must remain compatible with the selected .NET 8 LTS and EF Core 8 LTS versions (`Microsoft.AspNetCore.*: 10.x`, `Microsoft.EntityFrameworkCore.*: 10.x`). Developers must install .NET 8 LTS SDK or higher. Container base image directives are standardized on `mcr.microsoft.com/dotnet/aspnet:10.0` (runtime) and `mcr.microsoft.com/dotnet/sdk:10.0` (SDK).
 
 2.1 Approved Auxiliary Ecosystem Technologies
 
-The following 10 ecosystem technologies extend and complement the core architecture without conflicting with the ASP.NET Core 10, EF Core 10, or PostgreSQL foundations:
+The following 10 ecosystem technologies extend and complement the core architecture without conflicting with the ASP.NET Core 10, EF Core 8, or PostgreSQL foundations:
 
 1. **Material UI (MUI v6) Theme Tokens & shadcn/ui**: Accessible UI component primitives styled with Fidel Hub brand design tokens (`fidelTheme` palette: primary `#1B5E3F`, secondary `#E0A526`, background `#FAF7F0`, text `#1F2933`). Components never use hardcoded hex colors.
 2. **Tabler Icons (@tabler/icons-react)**: Unified, lightweight vector iconography across all 15 functional modules in web and mobile applications.
@@ -711,7 +711,7 @@ The initial finance module covers school fees and collections, not full general 
 
 9.5 EF Core Usage
 
-Use EF Core 10 for:
+Use EF Core 8 for:
 
 - Entity mapping.
 - Relationships.

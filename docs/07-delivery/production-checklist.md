@@ -8,8 +8,8 @@
 | **Version** | 1.0 |
 | **Status** | Approved Baseline |
 | **Sign-Off Authority** | Lead Software Architect & Technical Operations Lead |
-| **Runtime Baseline** | .NET 10 LTS (`net10.0`) |
-| **Prerequisites** | Developers must install .NET 10 SDK or higher. |
+| **Runtime Baseline** | .NET 8 LTS (`net8.0`) |
+| **Prerequisites** | Developers must install .NET 8 LTS SDK or higher. |
 | **Container Directives** | `mcr.microsoft.com/dotnet/aspnet:10.0` |
 
 ---

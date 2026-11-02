@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -15,7 +14,19 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddScoped<ICurrentTenantContext, CurrentTenantContext>();
 builder.Services.AddScoped<TenantConnectionInterceptor>();
 
-// 2. Database Context with Multi-Tenant Interceptor
+// 2. CORS Policy for Frontend Client
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost:3000", "https://app.fidelhub.com")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
+// 3. Database Context with Multi-Tenant Interceptor
 builder.Services.AddDbContext<FidelHubDbContext>((sp, options) =>
 {
     var connectionString = builder.Configuration.GetConnectionString("Postgres")
@@ -26,32 +37,34 @@ builder.Services.AddDbContext<FidelHubDbContext>((sp, options) =>
            .AddInterceptors(interceptor);
 });
 
-// 3. JWT Bearer Authentication (Better Auth Integration)
-var jwtIssuer = builder.Configuration["BetterAuth:Issuer"] ?? "https://auth.fidelhub.com";
+// 4. JWT Bearer Authentication (Better Auth Integration)
+var jwtIssuer = builder.Configuration["BetterAuth:Issuer"] ?? "http://localhost:4000";
 var jwtAudience = builder.Configuration["BetterAuth:Audience"] ?? "fidel-hub-api";
-var jwtSigningKey = builder.Configuration["BetterAuth:SecretKey"] ?? "fidel_hub_temporary_development_secret_key_minimum_32_characters";
+var metadataAddress = builder.Configuration["BetterAuth:MetadataAddress"] ?? "http://localhost:4000/.well-known/openid-configuration";
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.Authority = jwtIssuer;
         options.Audience = jwtAudience;
-        options.RequireHttpsMetadata = false; // Set to true in strict production
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+        options.MetadataAddress = metadataAddress;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidIssuer = jwtIssuer,
-            ValidateAudience = false, // Allow multi-client tokens
+            ValidateAudience = true,
+            ValidAudience = jwtAudience,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSigningKey)),
+            ValidAlgorithms = new[] { SecurityAlgorithms.RsaSha256 },
             ClockSkew = TimeSpan.FromSeconds(5)
         };
     });
 
 builder.Services.AddAuthorization();
 
-// 4. Swagger with Bearer Authentication Configuration
+// 5. Swagger with Bearer Authentication Configuration
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Fidel Hub Core API", Version = "v1" });
@@ -77,6 +90,8 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+app.UseCors();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -87,50 +102,46 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 
-// 5. Tenant & Branch Resolution Middleware
+// 6. Tenant & Branch Resolution Middleware
 app.Use(async (context, next) =>
 {
     var tenantContext = context.RequestServices.GetRequiredService<ICurrentTenantContext>();
 
-    // A. Check Authenticated JWT Claims first
+    // A. Authenticated JWT Claims (Strict primary source)
     if (context.User.Identity?.IsAuthenticated == true)
     {
         var tenantClaim = context.User.FindFirst("tenant_id")?.Value;
+        if (string.IsNullOrEmpty(tenantClaim) || !Guid.TryParse(tenantClaim, out var tenantId))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsJsonAsync(new { error = "Unauthorized: tenant_id claim is missing or invalid in authenticated token." });
+            return;
+        }
+
         var branchClaim = context.User.FindFirst("branch_id")?.Value;
         var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                           ?? context.User.FindFirst("sub")?.Value;
 
-        if (Guid.TryParse(tenantClaim, out var tenantId))
-        {
-            Guid? branchId = Guid.TryParse(branchClaim, out var bId) ? bId : null;
-            Guid? userId = Guid.TryParse(userIdClaim, out var uId) ? uId : null;
+        Guid? branchId = Guid.TryParse(branchClaim, out var bId) ? bId : null;
+        Guid? userId = Guid.TryParse(userIdClaim, out var uId) ? uId : null;
 
-            var roles = context.User.FindAll(ClaimTypes.Role).Concat(context.User.FindAll("roles")).Select(c => c.Value);
-            var permissions = context.User.FindAll("permissions").Select(c => c.Value);
+        var roles = context.User.FindAll(ClaimTypes.Role)
+            .Concat(context.User.FindAll("roles"))
+            .Select(c => c.Value);
+        var permissions = context.User.FindAll("permissions")
+            .Select(c => c.Value);
 
-            tenantContext.SetContext(tenantId, branchId, userId, roles, permissions);
-        }
+        tenantContext.SetContext(tenantId, branchId, userId, roles, permissions);
     }
-    // B. Development / Test Header Fallback
-    else if (context.Request.Headers.TryGetValue("X-Tenant-ID", out var tenantHeader) &&
+    // B. Development / Test Header Scoping (Only for non-privileged tenant resolution)
+    else if (app.Environment.IsDevelopment() &&
+             context.Request.Headers.TryGetValue("X-Tenant-ID", out var tenantHeader) &&
              Guid.TryParse(tenantHeader, out var devTenantId))
     {
         Guid? devBranchId = context.Request.Headers.TryGetValue("X-Branch-ID", out var branchHeader) &&
                             Guid.TryParse(branchHeader, out var bId) ? bId : null;
         
-        tenantContext.SetContext(devTenantId, devBranchId, null, null, null, "fidelhub");
-    }
-    // C. Default Seed Tenant Fallback (Fidel Hub Academy)
-    else
-    {
-        tenantContext.SetContext(
-            Guid.Parse("11111111-1111-1111-1111-111111111111"),
-            Guid.Parse("22222222-2222-2222-2222-222222222222"),
-            null,
-            new[] { "PLATFORM_SUPERADMIN" },
-            null,
-            "fidelhub"
-        );
+        tenantContext.SetContext(devTenantId, devBranchId, null, Array.Empty<string>(), Array.Empty<string>(), "dev");
     }
 
     await next();
@@ -138,7 +149,7 @@ app.Use(async (context, next) =>
 
 app.UseAuthorization();
 
-// 6. Base Health & Observability Endpoints (Kubernetes & Docker Probes)
+// 7. Base Health & Observability Endpoints (Kubernetes & Docker Probes)
 app.MapGet("/health/live", () => Results.Ok(new { status = "Live", timestamp = DateTime.UtcNow }))
     .WithName("LivenessProbe")
     .AllowAnonymous();
@@ -170,8 +181,9 @@ app.MapGet("/api/health", (ICurrentTenantContext tenant) => Results.Ok(new
     timestamp = DateTime.UtcNow
 }))
 .WithName("HealthCheck")
-.WithOpenApi();
+.AllowAnonymous();
 
+// 8. Protected API Endpoints (Requires Valid Tenant JWT)
 app.MapGet("/api/v1/auth/me", (ICurrentTenantContext tenant, ClaimsPrincipal user) =>
 {
     return Results.Ok(new
@@ -186,6 +198,7 @@ app.MapGet("/api/v1/auth/me", (ICurrentTenantContext tenant, ClaimsPrincipal use
     });
 })
 .WithName("GetCurrentUserContext")
+.RequireAuthorization()
 .WithOpenApi();
 
 app.MapGet("/api/v1/tenants/current", async (FidelHubDbContext db, ICurrentTenantContext tenantContext) =>
@@ -203,6 +216,7 @@ app.MapGet("/api/v1/tenants/current", async (FidelHubDbContext db, ICurrentTenan
     return Results.Ok(tenant);
 })
 .WithName("GetCurrentTenant")
+.RequireAuthorization()
 .WithOpenApi();
 
 app.Run();

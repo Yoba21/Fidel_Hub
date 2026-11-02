@@ -18,7 +18,7 @@
 ---
 
 ## 2. C# / .NET Standards
-- **Language Level**: C# 14 / .NET 8 LTS (net10.0).
+- **Language Level**: C# 12 / .NET 8 LTS (`net8.0`).
 - **Nullable Reference Types**: Mandatory `<Nullable>enable</Nullable>`. Code must compile with zero unhandled null warnings.
 - **Architecture Enforcement**: Automated NetArchTest rules verify that domain entities do not depend on external infrastructure or presentation layers.
 - **Database Access**: EF Core for command mutations and relationship tracking; Dapper for high-volume paginated read queries and complex reports.

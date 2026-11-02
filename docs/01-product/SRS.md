@@ -8,7 +8,7 @@
 | **Version** | 1.1 (Refined & Expanded with Complete Operational Modules) |
 | **Product** | Fidel Hub (ፊ) |
 | **Market Focus** | K–12 Multi-Tenant Institutions (Ethiopia & East Africa) |
-| **Technical Stack** | .NET 8 LTS / ASP.NET Core 8 Modular Monolith, PostgreSQL 16+ (RLS), Better Auth, React 18 (Vite 5), React Native (Expo) |
+| **Technical Stack** | .NET 8 LTS / ASP.NET Core 10 Modular Monolith, PostgreSQL 16+ (RLS), Better Auth, React 18 (Vite 5), React Native (Expo) |
 | **Reference Architecture** | PRD-001, TAD-003, DDS-004 & Gila-Schoolmate Functional Architecture |
 
 ---
@@ -18,7 +18,7 @@
 ### 1.1 Purpose
 This Software Requirements Specification (SRS) establishes the complete functional and non-functional requirements for **Fidel Hub**, an enterprise-grade multi-tenant School Management SaaS platform. 
 
-The feature specifications in this document incorporate end-to-end institutional workflows—including Student Information Systems (SIS), dual Ethiopian/Gregorian calendars, classroom scheduling, continuous assessment, offline-first Computer-Based Testing (CBT), student fee billing, library circulation, laboratory equipment management, student clinic dispensary, and teacher access auditing. All capabilities are architected to run on Fidel Hub's high-integrity stack: **.NET 8 LTS / ASP.NET Core 8 Modular Monolith**, **PostgreSQL 16+ with kernel-level Row-Level Security (RLS)**, **Better Auth** authentication service, **React 18 (Vite 5)** for web administration, and **React Native (Expo)** with offline **SQLite WAL** synchronization for resilient Computer-Based Testing (CBT).
+The feature specifications in this document incorporate end-to-end institutional workflows—including Student Information Systems (SIS), dual Ethiopian/Gregorian calendars, classroom scheduling, continuous assessment, offline-first Computer-Based Testing (CBT), student fee billing, library circulation, laboratory equipment management, student clinic dispensary, and teacher access auditing. All capabilities are architected to run on Fidel Hub's high-integrity stack: **.NET 8 LTS / ASP.NET Core 10 Modular Monolith**, **PostgreSQL 16+ with kernel-level Row-Level Security (RLS)**, **Better Auth** authentication service, **React 18 (Vite 5)** for web administration, and **React Native (Expo)** with offline **SQLite WAL** synchronization for resilient Computer-Based Testing (CBT).
 
 ### 1.2 Core Product Scope & Non-Goals
 

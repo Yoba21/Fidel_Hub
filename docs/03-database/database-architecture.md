@@ -9,7 +9,7 @@
 | **Status** | Approved Baseline |
 | **Database Engine** | PostgreSQL 16+ with Native Row-Level Security (RLS) |
 | **Connection Pooler** | PgBouncer (Transaction Pooling Mode) |
-| **ORM & Data Access** | Entity Framework Core 8 (.NET 8 LTS) + Dapper for High-Throughput Read Paths |
+| **ORM & Data Access** | Entity Framework Core 10 (.NET 8 LTS) + Dapper for High-Throughput Read Paths |
 
 ---
 

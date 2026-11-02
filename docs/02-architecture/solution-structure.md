@@ -7,7 +7,10 @@
 | **Document ID** | STR-001 |
 | **Version** | 1.1 |
 | **Status** | Approved Baseline |
-| **Target Framework** | .NET 10 LTS (`net10.0`) / ASP.NET Core 10 / EF Core 10 |
+| **Target Framework** | .NET 8 LTS (`net8.0`) / ASP.NET Core 8 / EF Core 8 |
+
+> [!NOTE]
+> **Active Codebase Namespaces**: In `FidelHub.sln`, the active implementation namespaces and assembly names use `School.*` (`School.Api`, `School.Shared`, `School.Worker`, and `School.Modules.*`), with `FidelHubDbContext` as the unified EF Core DbContext. References to `FidelHub.*` namespaces in early architectural documentation represent logical domain boundaries.
 
 ---
 
