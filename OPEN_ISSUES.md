@@ -13,7 +13,8 @@
 - [ ] **Issuer/PUBLIC_URL consistency in containers** - API fetches JWKS from `localhost:4000` by default; in Docker this will fail unless properly configured via environment variables.
 
 ## Database & Multi-Tenancy
-- [ ] **Transaction-local scoping untested** - `TransactionStarted`/`SetTenantSessionAsync(..., isLocal: true)` compiles and is wired up, but no endpoint currently performs writes. The session-scoped path is proven via E2E, but the transaction-scoped path (critical for preventing leaks in pooled connections) has never been executed.
+- [x] **Transaction-local scoping unit tests** - Added `backend/tests/School.UnitTests/TenantConnectionInterceptorTests.cs` exercising `TransactionStarted`, `TransactionStartedAsync`, and `ConnectionClosing` with both resolved and unresolved tenant contexts and mock transactions.
+- [x] **Entity leak audit across all endpoints** - Verified all 5 endpoints in `School.Api/Program.cs` (`/health/live`, `/health/ready`, `/api/health`, `/api/v1/auth/me`, `/api/v1/tenants/current`). All endpoints return typed DTOs or anonymous view models; zero domain entities are leaked.
 - [x] **Entity serialization leak risk** - Resolved via `[System.Text.Json.Serialization.JsonIgnore]` attribute on `DomainEvents` in `backend/School.Shared/Primitives/Entity.cs` AND dedicated `TenantResponse` DTO mapping in `backend/School.Api/Contracts/TenantResponse.cs` and `Program.cs`.
 - [ ] **`platform.tenants` and `identity.roles` RLS** - Intentionally without RLS (root catalog/resolution and platform-wide roles). Any future "list tenants" endpoint must be super-admin gated in code.
 - [ ] **Cross-tenant isolation** - Proven at DB level, but needs integration tests in CI (Testcontainers) as noted in testing strategy.

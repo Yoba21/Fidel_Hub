@@ -15,8 +15,8 @@ const PUBLIC_URL = process.env.BETTER_AUTH_URL || process.env.AUTH_PUBLIC_URL ||
 const ISSUER = process.env.BETTER_AUTH_ISSUER || PUBLIC_URL;
 const AUDIENCE = process.env.BETTER_AUTH_AUDIENCE || 'fidel-hub-api';
 
-if (process.env.NODE_ENV === 'production' && !process.env.DEMO_USER_PASSWORD) {
-  throw new Error('FATAL: DEMO_USER_PASSWORD must be explicitly configured when running the auth test-double in production.');
+if (process.env.NODE_ENV === 'production') {
+  throw new Error('FATAL: The mock auth test-double cannot be run in production. Deploy the persistent Better Auth microservice with database authentication.');
 }
 
 app.use(cors());

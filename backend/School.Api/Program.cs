@@ -31,7 +31,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<FidelHubDbContext>((sp, options) =>
 {
     var connectionString = builder.Configuration.GetConnectionString("Postgres")
-        ?? "Host=localhost;Port=5432;Database=fidelhub;Username=fidel_app_user;Password=fidel_secure_pass";
+        ?? builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException("Connection string 'Postgres' is not configured.");
     
     var interceptor = sp.GetRequiredService<TenantConnectionInterceptor>();
     options.UseNpgsql(connectionString)
@@ -139,6 +140,7 @@ app.Use(async (context, next) =>
              context.Request.Headers.TryGetValue("X-Tenant-ID", out var tenantHeader) &&
              Guid.TryParse(tenantHeader, out var devTenantId))
     {
+        app.Logger.LogWarning("Development override: Unauthenticated X-Tenant-ID used for tenant {TenantId}. Assigning unprivileged context.", devTenantId);
         Guid? devBranchId = context.Request.Headers.TryGetValue("X-Branch-ID", out var branchHeader) &&
                             Guid.TryParse(branchHeader, out var bId) ? bId : null;
         

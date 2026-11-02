@@ -1,28 +1,33 @@
 import { createTheme } from '@mui/material/styles';
 
+/**
+ * Fidel Hub Enterprise Design System
+ * Modern, high-trust institutional palette replacing legacy yellow/cream tints
+ * with crisp slate surfaces, executive emerald, and high-contrast typography.
+ */
 export const fidelTheme = createTheme({
   palette: {
     primary: {
-      main: '#1B5E3F', // Deep Green
-      light: '#2D8A5E',
-      dark: '#12422C',
+      main: '#0F5132', // Deep Executive Emerald
+      light: '#1B7348',
+      dark: '#0A3B24',
       contrastText: '#FFFFFF',
     },
     secondary: {
-      main: '#E0A526', // Warm Gold
-      light: '#EDB94C',
-      dark: '#B88214',
-      contrastText: '#1F2933',
+      main: '#0F172A', // Slate Navy / High-trust neutral
+      light: '#334155',
+      dark: '#020617',
+      contrastText: '#FFFFFF',
     },
     text: {
-      primary: '#1F2933', // Dark Ink
-      secondary: '#4B5563',
+      primary: '#0F172A', // Slate 900
+      secondary: '#475569', // Slate 600
     },
     background: {
-      default: '#FAF7F0', // Off-White
+      default: '#F8FAFC', // Slate 50 (Clean, crisp enterprise canvas)
       paper: '#FFFFFF',
     },
-    divider: '#E5E7EB',
+    divider: '#E2E8F0', // Slate 200
   },
   typography: {
     fontFamily: [
@@ -36,18 +41,18 @@ export const fidelTheme = createTheme({
     ].join(','),
     h4: {
       fontWeight: 700,
-      color: '#1F2933',
+      color: '#0F172A',
     },
     h5: {
       fontWeight: 600,
-      color: '#1F2933',
+      color: '#0F172A',
     },
     h6: {
       fontWeight: 600,
-      color: '#1F2933',
+      color: '#0F172A',
     },
     subtitle1: {
-      color: '#4B5563',
+      color: '#475569',
     },
     button: {
       textTransform: 'none',
@@ -55,7 +60,7 @@ export const fidelTheme = createTheme({
     },
   },
   shape: {
-    borderRadius: 10,
+    borderRadius: 8,
   },
   components: {
     MuiButton: {
@@ -63,14 +68,16 @@ export const fidelTheme = createTheme({
         root: {
           borderRadius: 8,
           boxShadow: 'none',
+          textTransform: 'none',
+          fontWeight: 600,
           '&:hover': {
-            boxShadow: '0 2px 4px rgba(27, 94, 63, 0.2)',
+            boxShadow: '0 1px 3px rgba(15, 23, 42, 0.1)',
           },
         },
         containedPrimary: {
-          backgroundColor: '#1B5E3F',
+          backgroundColor: '#0F5132',
           '&:hover': {
-            backgroundColor: '#164E34',
+            backgroundColor: '#0A3B24',
           },
         },
       },
@@ -79,8 +86,8 @@ export const fidelTheme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 12,
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)',
-          border: '1px solid #E5E7EB',
+          boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02)',
+          border: '1px solid #E2E8F0',
         },
       },
     },

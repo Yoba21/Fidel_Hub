@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { fidelTheme } from './theme/fidelTheme';
 import { Header } from './components/Header';
@@ -15,7 +15,7 @@ export function App() {
         <Header tenantName="Fidel Hub Academy" />
         <Box sx={{ display: 'flex', flexGrow: 1 }}>
           <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
-          <Box component="main" sx={{ flexGrow: 1, backgroundColor: '#FAF7F0', minHeight: 'calc(100vh - 70px)' }}>
+          <Box component="main" sx={{ flexGrow: 1, backgroundColor: '#F8FAFC', minHeight: 'calc(100vh - 70px)' }}>
             <Dashboard />
           </Box>
         </Box>
