@@ -1,50 +1,46 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Academics", "backend\Modules\Academics\Academics.csproj", "{CD8903FB-CDCB-442E-82B0-8ADB3A3B7339}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Academics", "backend/Modules/Academics/Academics.csproj", "{CD8903FB-CDCB-442E-82B0-8ADB3A3B7339}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Admissions", "backend\Modules\Admissions\Admissions.csproj", "{C21114EB-F6A8-4CDD-B6D0-ECEFB6488A2E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Admissions", "backend/Modules/Admissions/Admissions.csproj", "{C21114EB-F6A8-4CDD-B6D0-ECEFB6488A2E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Attendance", "backend\Modules\Attendance\Attendance.csproj", "{4BFDEFE9-6987-47B5-98F3-377C1E307BDF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Attendance", "backend/Modules/Attendance/Attendance.csproj", "{4BFDEFE9-6987-47B5-98F3-377C1E307BDF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Communication", "backend\Modules\Communication\Communication.csproj", "{A4F0F92B-50F2-466E-A0AB-B9117967FEE9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Communication", "backend/Modules/Communication/Communication.csproj", "{A4F0F92B-50F2-466E-A0AB-B9117967FEE9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examinations", "backend\Modules\Examinations\Examinations.csproj", "{F6E7D2AF-92F5-4A06-B500-853EE24D838C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examinations", "backend/Modules/Examinations/Examinations.csproj", "{F6E7D2AF-92F5-4A06-B500-853EE24D838C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Finance", "backend\Modules\Finance\Finance.csproj", "{16878A0A-3278-4FC8-AD04-56F0F8327CA4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Finance", "backend/Modules/Finance/Finance.csproj", "{16878A0A-3278-4FC8-AD04-56F0F8327CA4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity", "backend\Modules\Identity\Identity.csproj", "{57B50655-76D1-4507-81AB-7D20167B4EA8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity", "backend/Modules/Identity/Identity.csproj", "{57B50655-76D1-4507-81AB-7D20167B4EA8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reporting", "backend\Modules\Reporting\Reporting.csproj", "{9655A071-A4D5-494D-82EE-A23B0A6F12BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reporting", "backend/Modules/Reporting/Reporting.csproj", "{9655A071-A4D5-494D-82EE-A23B0A6F12BD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Students", "backend\Modules\Students\Students.csproj", "{9960BFC7-B734-427B-B182-B889D7416F39}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Students", "backend/Modules/Students/Students.csproj", "{9960BFC7-B734-427B-B182-B889D7416F39}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tenants", "backend\Modules\Tenants\Tenants.csproj", "{EB97609C-E915-423F-B74C-7FCCF9EF9630}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tenants", "backend/Modules/Tenants/Tenants.csproj", "{EB97609C-E915-423F-B74C-7FCCF9EF9630}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "School.Api", "backend\School.Api\School.Api.csproj", "{8C7D1580-C264-4841-986F-48BB604B3ACB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "School.Api", "backend/School.Api/School.Api.csproj", "{8C7D1580-C264-4841-986F-48BB604B3ACB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "School.Shared", "backend\School.Shared\School.Shared.csproj", "{B1F93F63-228B-42F8-8B41-B5D96C22F0EC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "School.Shared", "backend/School.Shared/School.Shared.csproj", "{B1F93F63-228B-42F8-8B41-B5D96C22F0EC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "School.Worker", "backend\School.Worker\School.Worker.csproj", "{B4943098-FF87-4F73-8694-3849CD3061C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "School.Worker", "backend/School.Worker/School.Worker.csproj", "{B4943098-FF87-4F73-8694-3849CD3061C3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "School.ArchitectureTests", "backend\tests\School.ArchitectureTests\School.ArchitectureTests.csproj", "{A2E4F4C3-E438-4973-9CF3-0E7BBAA3C3D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "School.ArchitectureTests", "backend/tests/School.ArchitectureTests/School.ArchitectureTests.csproj", "{A2E4F4C3-E438-4973-9CF3-0E7BBAA3C3D6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "School.UnitTests", "backend\tests\School.UnitTests\School.UnitTests.csproj", "{9C6A4370-619D-42EB-8CE8-3DD7AA3746A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "School.UnitTests", "backend/tests/School.UnitTests/School.UnitTests.csproj", "{9C6A4370-619D-42EB-8CE8-3DD7AA3746A3}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{52485187-11E9-40EC-AD97-45F31840A649}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audit", "backend/Modules/Audit/Audit.csproj", "{9B02CE06-AC36-49C6-ACED-F927C0280D42}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{6113A45B-8A8B-4876-A4FF-13A4CA1C4139}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Facilities", "backend/Modules/Facilities/Facilities.csproj", "{FF2C962D-3314-47A7-9190-3C2858FF6387}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Audit", "backend\Modules\Audit\Audit.csproj", "{9B02CE06-AC36-49C6-ACED-F927C0280D42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Grading", "backend/Modules/Grading/Grading.csproj", "{C3A30BB1-7BD9-4DB9-BF31-A5306F858AB0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Facilities", "backend\Modules\Facilities\Facilities.csproj", "{FF2C962D-3314-47A7-9190-3C2858FF6387}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Health", "backend/Modules/Health/Health.csproj", "{C8D5811A-7527-4C44-93D7-2418A3416ECB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grading", "backend\Modules\Grading\Grading.csproj", "{C3A30BB1-7BD9-4DB9-BF31-A5306F858AB0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Health", "backend\Modules\Health\Health.csproj", "{C8D5811A-7527-4C44-93D7-2418A3416ECB}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library", "backend\Modules\Library\Library.csproj", "{CA4994EA-3970-46E3-980B-CCA3CBFE7374}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Library", "backend/Modules/Library/Library.csproj", "{CA4994EA-3970-46E3-980B-CCA3CBFE7374}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -135,13 +131,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{6113A45B-8A8B-4876-A4FF-13A4CA1C4139} = {52485187-11E9-40EC-AD97-45F31840A649}
-		{9B02CE06-AC36-49C6-ACED-F927C0280D42} = {6113A45B-8A8B-4876-A4FF-13A4CA1C4139}
-		{FF2C962D-3314-47A7-9190-3C2858FF6387} = {6113A45B-8A8B-4876-A4FF-13A4CA1C4139}
-		{C3A30BB1-7BD9-4DB9-BF31-A5306F858AB0} = {6113A45B-8A8B-4876-A4FF-13A4CA1C4139}
-		{C8D5811A-7527-4C44-93D7-2418A3416ECB} = {6113A45B-8A8B-4876-A4FF-13A4CA1C4139}
-		{CA4994EA-3970-46E3-980B-CCA3CBFE7374} = {6113A45B-8A8B-4876-A4FF-13A4CA1C4139}
 	EndGlobalSection
 EndGlobal

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using School.Api.Contracts;
 using School.Shared.Data;
 using School.Shared.Data.Interceptors;
 using School.Shared.Tenancy;
@@ -213,7 +214,17 @@ app.MapGet("/api/v1/tenants/current", async (FidelHubDbContext db, ICurrentTenan
     if (tenant == null)
         return Results.NotFound(new { error = "Tenant not found." });
 
-    return Results.Ok(tenant);
+    return Results.Ok(new TenantResponse(
+        tenant.Id,
+        tenant.Name,
+        tenant.Code,
+        tenant.LegalName,
+        tenant.Email,
+        tenant.Phone,
+        tenant.Status,
+        tenant.DefaultCurrency,
+        tenant.CreatedAt,
+        tenant.UpdatedAt));
 })
 .WithName("GetCurrentTenant")
 .RequireAuthorization()

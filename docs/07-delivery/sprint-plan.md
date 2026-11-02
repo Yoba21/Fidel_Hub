@@ -7,7 +7,7 @@
 | **Document ID** | SPL-001 |
 | **Version** | 1.2 (Sprint 1 Substantially Implemented) |
 | **Status** | Approved Baseline |
-| **Current Sprint** | **Sprint 1: Multi-Tenancy Kernel, Better Auth & Platform Core (~85% Complete)** |
+| **Current Sprint** | **Sprint 1: Multi-Tenancy Kernel, Better Auth & Platform Core (~75% Complete)** |
 | **Detailed Plan** | See [`development-plan.md`](./development-plan.md) for task-by-task breakdown |
 
 ---
@@ -26,7 +26,7 @@ Each sprint runs on a strict two-week iteration cycle:
 
 | Sprint | Horizon / Focus | Target Window | Status | Completion % |
 | :--- | :--- | :--- | :---: | :---: |
-| **Sprint 1** | **Multi-Tenancy Kernel, Better Auth & Platform Core** | **Nov 1 – Nov 14, 2026** | **ACTIVE** | **~85%** |
+| **Sprint 1** | **Multi-Tenancy Kernel, Better Auth & Platform Core** | **Nov 1 – Nov 14, 2026** | **ACTIVE** | **~75%** |
 | **Sprint 2** | Student SIS, Online Admissions & Dual Calendar | Nov 15 – Nov 28, 2026 | Scheduled | 0% |
 | **Sprint 3** | Academic Timetables, Attendance & Automated SMS | Nov 29 – Dec 12, 2026 | Scheduled | 0% |
 | **Sprint 4** | Student Fee Management & Invoicing (No GL) | Dec 13 – Dec 26, 2026 | Scheduled | 0% |

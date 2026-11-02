@@ -8,6 +8,8 @@ public abstract class Entity
     public Guid Id { get; set; } = Guid.NewGuid();
 
     private readonly List<object> _domainEvents = new();
+
+    [System.Text.Json.Serialization.JsonIgnore]
     public IReadOnlyCollection<object> DomainEvents => _domainEvents.AsReadOnly();
 
     public void AddDomainEvent(object domainEvent) => _domainEvents.Add(domainEvent);
@@ -22,6 +24,8 @@ public abstract class BaseEntity<TId>
     public TId Id { get; set; } = default!;
 
     private readonly List<object> _domainEvents = new();
+
+    [System.Text.Json.Serialization.JsonIgnore]
     public IReadOnlyCollection<object> DomainEvents => _domainEvents.AsReadOnly();
 
     public void AddDomainEvent(object domainEvent) => _domainEvents.Add(domainEvent);
